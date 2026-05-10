@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# TODO: replace https://arcaneltech.com with your actual domain
+Sitemap: https://arcaneltech.com/sitemap.xml

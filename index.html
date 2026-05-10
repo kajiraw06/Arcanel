@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arcanel Tech | Phone & PC Repair – Hilongos, Leyte</title>
+  <meta name="description" content="Arcanel Tech offers professional phone and PC repair services in Hilongos, Leyte. Screen replacement, battery, virus removal, data recovery and more." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
+  <!-- Open Graph -->
+  <meta property="og:title" content="Arcanel Tech | Phone & PC Repair – Hilongos, Leyte" />
+  <meta property="og:description" content="Professional phone and PC repair in Hilongos, Leyte. Screen replacement, battery, virus removal, data recovery and more." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://arcaneltech.com/" /><!-- TODO: replace with your actual domain -->
+  <meta property="og:image" content="" /><!-- TODO: replace with a photo URL of your shop once available -->
+  <!-- Canonical -->
+  <link rel="canonical" href="https://arcaneltech.com/" /><!-- TODO: replace with your actual domain -->
+  <!-- Schema.org Local Business -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Arcanel Tech",
+    "description": "Professional phone and PC repair services in Hilongos, Leyte.",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Hilongos",
+      "addressRegion": "Leyte",
+      "addressCountry": "PH"
+    },
+    "telephone": "+639277755886",
+    "url": "https://www.facebook.com/profile.php?id=61589572797324",
+    "openingHours": "Mo-Sa 08:00-18:00",
+    "priceRange": "₱₱"
+  }
+  </script>
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="logo">
+        <svg class="logo-svg" width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="36" rx="10" fill="rgba(0,229,255,0.15)"/>
+          <rect width="36" height="36" rx="10" stroke="rgba(0,229,255,0.35)" stroke-width="1"/>
+          <path d="M22 5L11 20H17.5L14 31L25 16H18.5L22 5Z" fill="#00e5ff"/>
+        </svg>
+        <span class="logo-text">Arcanel<span class="accent">Tech</span></span>
+      </a>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#services">Services</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#why-us">Why Us</a></li>
+          <li><a href="#testimonials">Reviews</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#booking" class="btn btn-nav">Book a Repair</a></li>
+        </ul>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== TOP CONTACT STRIP ===== -->
+  <div class="contact-strip">
+    <div class="container contact-strip-inner">
+      <span>📍 Hilongos, Leyte, Philippines</span>
+      <span>Mon – Sat &nbsp;|&nbsp; 8:00 AM – 6:00 PM</span>
+      <span>
+        <a href="tel:+639277755886">📞 0927 775 5886</a>
+        &nbsp;&nbsp;
+        <a href="https://www.facebook.com/profile.php?id=61589572797324" target="_blank" rel="noopener">📘 Facebook</a>
+      </span>
+    </div>
+  </div>
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-text">
+        <p class="hero-badge">Hilongos, Leyte's Trusted Repair Shop</p>
+        <h1>Fast & Reliable<br /><span class="accent">Phone & PC Repair</span></h1>
+        <p class="hero-sub">We fix screens, batteries, viruses, hardware and more — professionally and affordably. Bring your device back to life with Arcanel Tech.</p>
+        <div class="hero-cta">
+          <a href="#booking" class="btn btn-primary">Book a Repair</a>
+          <a href="#services" class="btn btn-outline">Our Services</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card">
+          <div class="stat"><span class="stat-num">100%</span><span class="stat-label">Customer Satisfaction</span></div>
+          <div class="stat"><span class="stat-num">Fast</span><span class="stat-label">Turnaround Time</span></div>
+          <div class="stat"><span class="stat-num">All</span><span class="stat-label">Devices Accepted</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      Scroll
+    </div>
+  </section>
+  <section class="services" id="services">
+    <div class="container">
+      <p class="section-label">What We Fix</p>
+      <h2 class="section-title">Our Services</h2>
+      <p class="section-sub">Professional repairs for all your devices — phones, laptops, and desktops.</p>
+      <div class="services-grid">
+
+        <div class="service-card">
+          <div class="service-icon">📱</div>
+          <h3>Phone Screen Replacement</h3>
+          <p>Cracked or shattered screen? We replace displays for most phone brands quickly and cleanly.</p>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">🔋</div>
+          <h3>Battery Replacement</h3>
+          <p>Is your phone dying fast? We swap out worn batteries so your device lasts all day again.</p>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">💻</div>
+          <h3>PC & Laptop Repair</h3>
+          <p>Hardware issues, slow performance, broken ports — we diagnose and fix all PC and laptop problems.</p>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">🛡️</div>
+          <h3>Virus & Malware Removal</h3>
+          <p>We deep-clean your device from viruses, malware, and unwanted programs to keep you safe.</p>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">💾</div>
+          <h3>Data Recovery</h3>
+          <p>Lost important files or photos? We recover data from damaged phones, drives, and storage devices.</p>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">⚙️</div>
+          <h3>Software Installation</h3>
+          <p>OS reinstalls, driver updates, app setup — we handle all your software needs properly.</p>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">🔧</div>
+          <h3>Hardware Upgrades</h3>
+          <p>Boost your PC's speed with RAM upgrades, SSD installs, and other performance hardware.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRICING ===== -->
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <p class="section-label">Transparent Pricing</p>
+      <h2 class="section-title">Service Price Guide</h2>
+      <p class="section-sub" style="margin: 0 auto 48px;">All prices are starting rates — final cost depends on device model and parts needed. We always give you a quote before we start. No hidden fees.</p>
+      <div class="pricing-grid">
+
+        <div class="pricing-card">
+          <span class="pricing-icon">📱</span>
+          <h3>Phone Screen Replacement</h3>
+          <p class="pricing-price">From ₱350</p>
+          <p class="pricing-desc">Covers most Android brands. iPhone models may vary.</p>
+        </div>
+
+        <div class="pricing-card">
+          <span class="pricing-icon">🔋</span>
+          <h3>Battery Replacement</h3>
+          <p class="pricing-price">From ₱200</p>
+          <p class="pricing-desc">All major phone and laptop brands.</p>
+        </div>
+
+        <div class="pricing-card">
+          <span class="pricing-icon"></span>
+          <h3>PC &amp; Laptop Repair</h3>
+          <p class="pricing-price">From ₱300</p>
+          <p class="pricing-desc">Diagnosis, hardware faults, and port repairs.</p>
+        </div>
+
+        <div class="pricing-card">
+          <span class="pricing-icon">🛡️</span>
+          <h3>Virus &amp; Malware Removal</h3>
+          <p class="pricing-price">From ₱300</p>
+          <p class="pricing-desc">Full deep clean and security check.</p>
+        </div>
+
+        <div class="pricing-card">
+          <span class="pricing-icon">💾</span>
+          <h3>Data Recovery</h3>
+          <p class="pricing-price">From ₱400</p>
+          <p class="pricing-desc">Phones, laptops, and damaged storage devices.</p>
+        </div>
+
+        <div class="pricing-card">
+          <span class="pricing-icon">⚙️</span>
+          <h3>Software Installation</h3>
+          <p class="pricing-price">From ₱150</p>
+          <p class="pricing-desc">OS reinstall, drivers, and app setup.</p>
+        </div>
+
+        <div class="pricing-card">
+          <span class="pricing-icon">🔧</span>
+          <h3>Hardware Upgrade</h3>
+          <p class="pricing-price">From ₱200 + parts</p>
+          <p class="pricing-desc">RAM, SSD installs, and performance upgrades.</p>
+        </div>
+
+      </div>
+      <p class="pricing-note">★ Prices are starting rates and may vary by device model and repair complexity. Free diagnosis included — we check first, then give you a quote.</p>
+    </div>
+  </section>
+
+  <!-- ===== WHY US ===== -->
+  <section class="why-us" id="why-us">
+    <div class="container">
+      <p class="section-label">Why Choose Us</p>
+      <h2 class="section-title">The Arcanel Tech Difference</h2>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-icon">⚡</div>
+          <h3>Fast Repairs</h3>
+          <p>Most repairs are completed same-day so you're not without your device for long.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">💰</div>
+          <h3>Affordable Prices</h3>
+          <p>Fair, transparent pricing with no hidden fees. We give you a quote before we start.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">🤝</div>
+          <h3>Trusted & Local</h3>
+          <p>We're your neighbors in Hilongos, Leyte. Your trust and satisfaction is our top priority.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">✅</div>
+          <h3>7-Day Warranty</h3>
+          <p>All repairs come with a 7-day warranty. If the same issue returns, we fix it free of charge.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TESTIMONIALS ===== -->
+  <section class="testimonials" id="testimonials">
+    <div class="container">
+      <p class="section-label">What Customers Say</p>
+      <h2 class="section-title">Customer Reviews</h2>
+      <div class="testimonials-grid">
+
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"Nabuak kaayo ang akong screen pero giayo nila dayon sa same day! Barato pa gyud ug propesyonal kaayo. Balik-balik gyud ko diri!"</p>
+          <div class="testimonial-author">
+            <span class="testimonial-name">Maria S.</span>
+            <span class="testimonial-location">Hilongos, Leyte</span>
+            <span class="testimonial-date">April 2026</span>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"Hinay kaayo akong laptop ug puno sa virus. Gilimpyuhan nila ug karon murag bag-o na! Matinud-anon sila sa presyo. Hgighly recommend gyud!"</p>
+          <div class="testimonial-author">
+            <span class="testimonial-name">Ronald B.</span>
+            <span class="testimonial-location">Hilongos, Leyte</span>
+            <span class="testimonial-date">March 2026</span>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"Nahunahuna nako nawala na ang akong mga litrato pagkahuwad sa tubig sa akong phone. Gibawi nila tanan! Dako kaayong salamat. Kasaligan kaayo ug hanas nga technician."</p>
+          <div class="testimonial-author">
+            <span class="testimonial-name">Liza D.</span>
+            <span class="testimonial-location">Hilongos, Leyte</span>
+            <span class="testimonial-date">February 2026</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section class="about" id="about">
+    <div class="container about-inner">
+      <div class="about-text">
+        <p class="section-label">About Us</p>
+        <h2 class="section-title">Who Is Arcanel Tech?</h2>
+        <p>Arcanel Tech is a local tech repair business based in <strong>Hilongos, Leyte</strong>. We are passionate about technology and dedicated to helping our community keep their devices working at their best.</p>
+        <p>Whether it's a cracked phone screen, a slow laptop, or a virus-infected computer — we have the skills and tools to get it fixed right. We treat every device like it's our own.</p>
+        <a href="#booking" class="btn btn-primary">Reach Out to Us</a>
+      </div>
+      <div class="about-visual">
+        <div class="about-badge-group">
+          <div class="about-badge">📱 Phones</div>
+          <div class="about-badge">💻 Laptops</div>
+          <div class="about-badge">🖥️ Desktops</div>
+          <div class="about-badge">🔋 Batteries</div>
+          <div class="about-badge">💾 Data</div>
+          <div class="about-badge">🛡️ Security</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CONTACT / QUICK INQUIRY ===== -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <p class="section-label">Get in Touch</p>
+      <h2 class="section-title">Have a Quick Question?</h2>
+      <p class="section-sub" style="margin: 0 auto 56px;">Not ready to book yet? Send us a message and we'll reply via call or Facebook.</p>
+      <div class="contact-grid">
+
+        <div class="contact-info">
+          <div class="contact-item">
+            <span class="contact-icon">📍</span>
+            <div>
+              <strong>Location</strong>
+              <p>Hilongos, Leyte, Philippines</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">📞</span>
+            <div>
+              <strong>Phone / SMS / WhatsApp</strong>
+              <p><a href="tel:+639277755886" class="contact-link">0927 775 5886</a></p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">🔐</span>
+            <div>
+              <strong>Business Hours</strong>
+              <p>Monday – Saturday: 8:00 AM – 6:00 PM</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">📘</span>
+            <div>
+              <strong>Facebook Page</strong>
+              <a href="https://www.facebook.com/profile.php?id=61589572797324" target="_blank" rel="noopener" class="contact-btn contact-btn-fb">Message on Facebook</a>
+            </div>
+          </div>
+          <!-- Google Maps embed of Hilongos, Leyte -->
+          <div class="map-wrap">
+            <iframe
+              src="https://maps.google.com/maps?q=Hilongos,Leyte,Philippines&z=14&output=embed"
+              width="100%" height="220" style="border:0;"
+              allowfullscreen="" loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title="Arcanel Tech location – Hilongos, Leyte"></iframe>
+          </div>
+        </div>
+
+        <div class="contact-form">
+          <h3 style="font-family:var(--font-head);font-size:1.1rem;font-weight:700;color:var(--white);margin-bottom:22px;">Send a Message</h3>
+          <form id="contactForm" action="https://formspree.io/f/REPLACE_WITH_YOUR_FORM_ID" method="POST"><!-- same form ID as booking form -->
+            <input type="hidden" name="_subject" value="Quick Inquiry – Arcanel Tech" />
+            <div class="form-group" style="margin-bottom:18px;">
+              <label for="c-name">Your Name</label>
+              <input type="text" id="c-name" name="name" placeholder="Juan dela Cruz" required />
+            </div>
+            <div class="form-group" style="margin-bottom:18px;">
+              <label for="c-contact">Phone or Facebook Name</label>
+              <input type="text" id="c-contact" name="contact" placeholder="09XX XXX XXXX or your Facebook name" required />
+            </div>
+            <div class="form-group" style="margin-bottom:22px;">
+              <label for="c-msg">Your Message</label>
+              <textarea id="c-msg" name="message" rows="5" placeholder="Ask us anything about your device…" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Send Message</button>
+            <p class="form-note" id="contactNote" style="margin-top:12px;"></p>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== BOOKING ===== -->
+  <section class="booking" id="booking">
+    <div class="container">
+      <p class="section-label">Schedule a Visit</p>
+      <h2 class="section-title">Book a Repair Appointment</h2>
+      <p class="section-sub" style="margin: 0 auto 12px;">Fill out the form below and we'll confirm your appointment via call or message.</p>
+      <p class="booking-note">📧 Booking confirmations are sent to <strong>arcaneltech@gmail.com</strong>. Make sure to check your inbox and verify with Formspree if you haven't yet.</p>
+      <form class="booking-form" id="bookingForm" action="https://formspree.io/f/REPLACE_WITH_YOUR_FORM_ID" method="POST"><!-- TODO: sign up at formspree.io and replace REPLACE_WITH_YOUR_FORM_ID -->
+        <input type="hidden" name="_subject" value="New Repair Appointment – Arcanel Tech" />
+        <div class="booking-grid">
+          <div class="form-group">
+            <label for="b-name">Your Name</label>
+            <input type="text" id="b-name" name="name" placeholder="Juan dela Cruz" required />
+          </div>
+          <div class="form-group">
+            <label for="b-phone">Phone Number</label>
+            <input type="tel" id="b-phone" name="phone" placeholder="09XX XXX XXXX" required />
+          </div>
+          <div class="form-group">
+            <label for="b-device">Device & Problem</label>
+            <input type="text" id="b-device" name="device" placeholder="e.g. Samsung A05 — cracked screen" required />
+          </div>
+          <div class="form-group">
+            <label for="b-service">Service Needed</label>
+            <select id="b-service" name="service" required>
+              <option value="" disabled selected>Select a service…</option>
+              <option>Phone Screen Replacement</option>
+              <option>Battery Replacement</option>
+              <option>PC / Laptop Repair</option>
+              <option>Virus & Malware Removal</option>
+              <option>Data Recovery</option>
+              <option>Software Installation</option>
+              <option>Hardware Upgrade</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="b-date">Preferred Date</label>
+            <input type="date" id="b-date" name="preferred_date" required />
+          </div>
+          <div class="form-group">
+            <label for="b-time">Preferred Time</label>
+            <select id="b-time" name="preferred_time" required>
+              <option value="" disabled selected>Select a time…</option>
+              <option>8:00 AM – 9:00 AM</option>
+              <option>9:00 AM – 10:00 AM</option>
+              <option>10:00 AM – 11:00 AM</option>
+              <option>11:00 AM – 12:00 PM</option>
+              <option>1:00 PM – 2:00 PM</option>
+              <option>2:00 PM – 3:00 PM</option>
+              <option>3:00 PM – 4:00 PM</option>
+              <option>4:00 PM – 5:00 PM</option>
+              <option>5:00 PM – 6:00 PM</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="b-notes">Additional Notes <span style="font-weight:400;color:#94a3b8">(optional)</span></label>
+          <textarea id="b-notes" name="notes" rows="3" placeholder="Anything else we should know?"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Confirm Appointment</button>
+        <p class="form-note" id="bookingNote"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <p class="section-label">Common Questions</p>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <div class="faq-list">
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">How long does a repair usually take? <span class="faq-arrow">▼</span></button>
+          <div class="faq-a">Most common repairs like screen replacements and battery swaps are done same-day, often within a few hours. More complex repairs may take 1–2 days. We'll give you a time estimate when you bring in your device.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">Do you offer a warranty on repairs? <span class="faq-arrow">▼</span></button>
+          <div class="faq-a">Yes! All our repairs come with a 7-day warranty. If the same issue comes back within 7 days of your repair, we'll fix it at no extra charge.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">Is my data safe during the repair? <span class="faq-arrow">▼</span></button>
+          <div class="faq-a">Absolutely. We treat your data with the utmost respect and privacy. We only access what's necessary to perform the repair. We recommend backing up your data beforehand, but we take great care of your device.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">Do you repair all phone and laptop brands? <span class="faq-arrow">▼</span></button>
+          <div class="faq-a">Yes! We repair all major brands including Samsung, iPhone, OPPO, Vivo, Xiaomi, Realme, Huawei, Asus, Acer, Dell, HP, Lenovo, and more. Bring your device in and we'll check what's wrong.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">Do you do house calls or pick-up? <span class="faq-arrow">▼</span></button>
+          <div class="faq-a">Currently we only accept walk-in repairs at our shop in Hilongos, Leyte. You can message us on Facebook or WhatsApp first to check availability before coming in.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">How much does a repair cost? <span class="faq-arrow">▼</span></button>
+          <div class="faq-a">Prices vary depending on the type of repair, the device model, and the parts needed. Every device is different, so we assess it first and give you a full quote before we start any work — no hidden fees, no surprises.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container footer-grid">
+
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <svg class="logo-svg" width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="36" height="36" rx="10" fill="rgba(0,229,255,0.15)"/>
+            <rect width="36" height="36" rx="10" stroke="rgba(0,229,255,0.35)" stroke-width="1"/>
+            <path d="M22 5L11 20H17.5L14 31L25 16H18.5L22 5Z" fill="#00e5ff"/>
+          </svg>
+          <span class="logo-text">Arcanel<span class="accent">Tech</span></span>
+        </a>
+        <p class="footer-desc">Professional phone &amp; PC repair in Hilongos, Leyte. Fast, affordable, and trusted by the local community.</p>
+        <p class="footer-tagline">Fixing devices. Building trust.</p>
+      </div>
+
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#services">Our Services</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#why-us">Why Choose Us</a></li>
+          <li><a href="#testimonials">Customer Reviews</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="#booking">Book a Repair</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-contact">
+        <h4>Contact Us</h4>
+        <ul>
+          <li>📍 Hilongos, Leyte, Philippines</li>
+          <li><a href="tel:+639277755886">📞 0927 775 5886</a></li>
+          <li><a href="https://wa.me/639277755886" target="_blank" rel="noopener">💬 WhatsApp</a></li>
+          <li><a href="https://www.facebook.com/profile.php?id=61589572797324" target="_blank" rel="noopener">📘 Facebook Page</a></li>
+          <li>🕐 Mon – Sat: 8:00 AM – 6:00 PM</li>
+        </ul>
+      </div>
+
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Arcanel Tech. All rights reserved. · Hilongos, Leyte</p>
+    </div>
+  </footer>
+
+  <!-- ===== SCROLL TO TOP ===== -->
+  <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
+  <!-- ===== FLOATING MESSENGER BUTTON ===== -->
+  <a href="https://m.me/61589572797324" target="_blank" rel="noopener" class="float-messenger" aria-label="Chat on Messenger">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="28" height="28">
+      <path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.914 1.456 5.51 3.736 7.214V22l3.406-1.87c.91.251 1.874.387 2.858.387 5.523 0 10-4.145 10-9.274S17.523 2 12 2zm1.043 12.488l-2.548-2.718-4.975 2.718 5.476-5.812 2.609 2.718 4.914-2.718-5.476 5.812z"/>
+    </svg>
+  </a>
+
+  <!-- Google Analytics – replace G-XXXXXXXXXX with your Measurement ID from analytics.google.com -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>
