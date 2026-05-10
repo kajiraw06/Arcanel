@@ -129,7 +129,13 @@ bookingForm.addEventListener('submit', async (e) => {
         notes:   bookingEntry.notes,
         source:  bookingEntry.source,
         status:  bookingEntry.status
-      }).then(({ error }) => { if (error) console.warn('Booking save error:', error.message); });
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Supabase booking insert error:', error.message, error);
+        } else {
+          console.log('Booking saved to Supabase successfully.');
+        }
+      });
 
     } else {
       bookingNote.textContent = 'Something went wrong. Please message us on Facebook or WhatsApp.';
