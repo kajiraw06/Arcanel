@@ -83,10 +83,26 @@ bookingForm.addEventListener('submit', async (e) => {
   btn.textContent = 'Sending…';
   btn.disabled = true;
 
+  // Capture form data before reset
+  const formData = new FormData(bookingForm);
+  const bookingEntry = {
+    id:        Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    name:      formData.get('name')           || '',
+    phone:     formData.get('phone')          || '',
+    device:    formData.get('device')         || '',
+    service:   formData.get('service')        || '',
+    date:      formData.get('preferred_date') || '',
+    time:      formData.get('preferred_time') || '',
+    notes:     formData.get('notes')          || '',
+    source:    'Website Form',
+    status:    'pending',
+    createdAt: new Date().toISOString()
+  };
+
   try {
     const response = await fetch('https://formspree.io/f/maqvljoq', {
       method: 'POST',
-      body: new FormData(bookingForm),
+      body: formData,
       headers: { 'Accept': 'application/json' }
     });
 
@@ -94,6 +110,14 @@ bookingForm.addEventListener('submit', async (e) => {
       bookingNote.textContent = '✓ Appointment request sent! We\'ll confirm via call or message soon.';
       bookingNote.style.color = '#16a34a';
       bookingForm.reset();
+
+      // Save to admin tracker (localStorage)
+      try {
+        const existing = JSON.parse(localStorage.getItem('arcanel_bookings')) || [];
+        existing.unshift(bookingEntry);
+        localStorage.setItem('arcanel_bookings', JSON.stringify(existing));
+      } catch (_) {}
+
     } else {
       bookingNote.textContent = 'Something went wrong. Please message us on Facebook or WhatsApp.';
       bookingNote.style.color = '#dc2626';
@@ -167,10 +191,25 @@ if (contactForm) {
     btn.textContent = 'Sending…';
     btn.disabled = true;
 
+    const formData = new FormData(contactForm);
+    const inquiryEntry = {
+      id:        Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name:      formData.get('name')    || '',
+      phone:     formData.get('contact') || '',
+      device:    '—',
+      service:   'Quick Inquiry',
+      date:      '',
+      time:      '',
+      notes:     formData.get('message') || '',
+      source:    'Website Form',
+      status:    'pending',
+      createdAt: new Date().toISOString()
+    };
+
     try {
       const response = await fetch(contactForm.action, {
         method: 'POST',
-        body: new FormData(contactForm),
+        body: formData,
         headers: { 'Accept': 'application/json' }
       });
 
@@ -178,6 +217,14 @@ if (contactForm) {
         contactNote.textContent = '✓ Message sent! We\'ll get back to you soon.';
         contactNote.style.color = '#16a34a';
         contactForm.reset();
+
+        // Save to admin tracker (localStorage)
+        try {
+          const existing = JSON.parse(localStorage.getItem('arcanel_bookings')) || [];
+          existing.unshift(inquiryEntry);
+          localStorage.setItem('arcanel_bookings', JSON.stringify(existing));
+        } catch (_) {}
+
       } else {
         contactNote.textContent = 'Something went wrong. Please message us on Facebook.';
         contactNote.style.color = '#dc2626';
