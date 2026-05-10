@@ -1,3 +1,12 @@
+// ===== SUPABASE CLIENT =====
+const _sbClient = (() => {
+  const { createClient } = supabase;
+  return createClient(
+    'https://kwgdjagjpqrkcyrehcyh.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3Z2RqYWdqcHFya2N5cmVoY3loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzNzk1NDUsImV4cCI6MjA5Mzk1NTU0NX0.DxmxvyMjlivZbnCmECZZxEP8lYAso33lRXFXdtcklH8'
+  );
+})();
+
 // ===== PARTICLE CANVAS BACKGROUND =====
 (function () {
   const canvas = document.getElementById('bg-canvas');
@@ -86,7 +95,6 @@ bookingForm.addEventListener('submit', async (e) => {
   // Capture form data before reset
   const formData = new FormData(bookingForm);
   const bookingEntry = {
-    id:        Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     name:      formData.get('name')           || '',
     phone:     formData.get('phone')          || '',
     device:    formData.get('device')         || '',
@@ -95,8 +103,7 @@ bookingForm.addEventListener('submit', async (e) => {
     time:      formData.get('preferred_time') || '',
     notes:     formData.get('notes')          || '',
     source:    'Website Form',
-    status:    'pending',
-    createdAt: new Date().toISOString()
+    status:    'pending'
   };
 
   try {
@@ -111,12 +118,18 @@ bookingForm.addEventListener('submit', async (e) => {
       bookingNote.style.color = '#16a34a';
       bookingForm.reset();
 
-      // Save to admin tracker (localStorage)
-      try {
-        const existing = JSON.parse(localStorage.getItem('arcanel_bookings')) || [];
-        existing.unshift(bookingEntry);
-        localStorage.setItem('arcanel_bookings', JSON.stringify(existing));
-      } catch (_) {}
+      // Save to Supabase
+      _sbClient.from('bookings').insert({
+        name:    bookingEntry.name,
+        phone:   bookingEntry.phone,
+        device:  bookingEntry.device,
+        service: bookingEntry.service,
+        date:    bookingEntry.date    || null,
+        time:    bookingEntry.time    || null,
+        notes:   bookingEntry.notes,
+        source:  bookingEntry.source,
+        status:  bookingEntry.status
+      }).then(({ error }) => { if (error) console.warn('Booking save error:', error.message); });
 
     } else {
       bookingNote.textContent = 'Something went wrong. Please message us on Facebook or WhatsApp.';
@@ -193,17 +206,13 @@ if (contactForm) {
 
     const formData = new FormData(contactForm);
     const inquiryEntry = {
-      id:        Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      name:      formData.get('name')    || '',
-      phone:     formData.get('contact') || '',
-      device:    '—',
-      service:   'Quick Inquiry',
-      date:      '',
-      time:      '',
-      notes:     formData.get('message') || '',
-      source:    'Website Form',
-      status:    'pending',
-      createdAt: new Date().toISOString()
+      name:    formData.get('name')    || '',
+      phone:   formData.get('contact') || '',
+      device:  '—',
+      service: 'Quick Inquiry',
+      notes:   formData.get('message') || '',
+      source:  'Website Form',
+      status:  'pending'
     };
 
     try {
@@ -218,12 +227,18 @@ if (contactForm) {
         contactNote.style.color = '#16a34a';
         contactForm.reset();
 
-        // Save to admin tracker (localStorage)
-        try {
-          const existing = JSON.parse(localStorage.getItem('arcanel_bookings')) || [];
-          existing.unshift(inquiryEntry);
-          localStorage.setItem('arcanel_bookings', JSON.stringify(existing));
-        } catch (_) {}
+        // Save to Supabase
+        _sbClient.from('bookings').insert({
+          name:    inquiryEntry.name,
+          phone:   inquiryEntry.phone,
+          device:  inquiryEntry.device,
+          service: inquiryEntry.service,
+          date:    null,
+          time:    null,
+          notes:   inquiryEntry.notes,
+          source:  inquiryEntry.source,
+          status:  inquiryEntry.status
+        }).then(({ error }) => { if (error) console.warn('Inquiry save error:', error.message); });
 
       } else {
         contactNote.textContent = 'Something went wrong. Please message us on Facebook.';

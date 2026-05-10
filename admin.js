@@ -1,17 +1,21 @@
 /* ============================================================
-   ARCANEL TECH — ADMIN BOOKING TRACKER
-   Password: arcanel2026  (change it below in ADMIN_PASS)
-   Data is stored in localStorage — no backend needed.
+   ARCANEL TECH — ADMIN BOOKING TRACKER (Supabase Edition)
+   Password: arcanel2026  (change ADMIN_PASS below)
    ============================================================ */
 
-const ADMIN_PASS   = 'arcanel2026'; // ← change your password here
-const STORAGE_KEY  = 'arcanel_bookings';
-const SESSION_KEY  = 'arcanel_admin_session';
+const ADMIN_PASS  = 'arcanel2026'; // ← change your password here
+const SESSION_KEY = 'arcanel_admin_session';
+
+const SUPABASE_URL = 'https://kwgdjagjpqrkcyrehcyh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3Z2RqYWdqcHFya2N5cmVoY3loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzNzk1NDUsImV4cCI6MjA5Mzk1NTU0NX0.DxmxvyMjlivZbnCmECZZxEP8lYAso33lRXFXdtcklH8';
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ─── State ───────────────────────────────────────────────────
-let bookings    = [];
-let editingId   = null;
-let deleteId    = null;
+let bookings     = [];
+let editingId    = null;
+let deleteId     = null;
 let filterStatus = 'all';
 let searchQuery  = '';
 
@@ -61,59 +65,63 @@ const mStatus  = document.getElementById('m-status');
 const mNotes   = document.getElementById('m-notes');
 
 // ─── Auth ─────────────────────────────────────────────────────
-function checkSession() {
-  return sessionStorage.getItem(SESSION_KEY) === 'true';
-}
-
-function showDashboard() {
-  loginOverlay.style.display = 'none';
-  dashboard.classList.add('active');
-}
-
-function showLogin() {
-  loginOverlay.style.display = 'flex';
-  dashboard.classList.remove('active');
-}
-
 loginBtn.addEventListener('click', () => {
   if (adminPass.value === ADMIN_PASS) {
     sessionStorage.setItem(SESSION_KEY, 'true');
     loginError.textContent = '';
     adminPass.value = '';
     showDashboard();
-    loadBookings();
-    render();
   } else {
     loginError.textContent = 'Incorrect password. Try again.';
     adminPass.value = '';
     adminPass.focus();
   }
 });
+adminPass.addEventListener('keydown', e => { if (e.key === 'Enter') loginBtn.click(); });
+logoutBtn.addEventListener('click', () => { sessionStorage.removeItem(SESSION_KEY); showLogin(); });
 
-adminPass.addEventListener('keydown', e => {
-  if (e.key === 'Enter') loginBtn.click();
-});
+function showDashboard() {
+  loginOverlay.style.display = 'none';
+  dashboard.classList.add('active');
+  loadAndRender();
+}
+function showLogin() {
+  loginOverlay.style.display = 'flex';
+  dashboard.classList.remove('active');
+}
 
-logoutBtn.addEventListener('click', () => {
-  sessionStorage.removeItem(SESSION_KEY);
-  showLogin();
-});
+// ─── Supabase CRUD ────────────────────────────────────────────
+async function loadAndRender() {
+  bookingsBody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px;">Loading…</td></tr>';
+  const { data, error } = await db
+    .from('bookings')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-// ─── Storage ──────────────────────────────────────────────────
-function loadBookings() {
-  try {
-    bookings = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch {
-    bookings = [];
+  if (error) {
+    bookingsBody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:#ef4444;padding:32px;">Failed to load: ${error.message}</td></tr>`;
+    return;
   }
+  bookings = data || [];
+  render();
 }
 
-function saveBookings() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+async function insertBooking(entry) {
+  const { error } = await db.from('bookings').insert(entry);
+  if (error) { alert('Error saving booking: ' + error.message); return false; }
+  return true;
 }
 
-function genId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+async function updateBooking(id, fields) {
+  const { error } = await db.from('bookings').update(fields).eq('id', id);
+  if (error) { alert('Error updating booking: ' + error.message); return false; }
+  return true;
+}
+
+async function deleteBooking(id) {
+  const { error } = await db.from('bookings').delete().eq('id', id);
+  if (error) { alert('Error deleting booking: ' + error.message); return false; }
+  return true;
 }
 
 // ─── Render ───────────────────────────────────────────────────
@@ -154,6 +162,7 @@ function renderTable() {
   emptyState.classList.remove('visible');
 
   rows.forEach((b, i) => {
+    const dateDisplay = b.date ? new Date(b.date + 'T00:00:00').toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="td-num">${i + 1}</td>
@@ -161,7 +170,7 @@ function renderTable() {
       <td class="td-phone"><a href="tel:${esc(b.phone)}">${esc(b.phone)}</a></td>
       <td class="td-device">${esc(b.device)}</td>
       <td>${esc(b.service)}</td>
-      <td style="white-space:nowrap">${esc(b.date) || '—'}</td>
+      <td style="white-space:nowrap">${dateDisplay}</td>
       <td style="white-space:nowrap;font-size:0.8rem;color:var(--muted)">${esc(b.time) || '—'}</td>
       <td style="font-size:0.8rem;color:var(--muted)">${esc(b.source) || '—'}</td>
       <td>
@@ -198,13 +207,12 @@ function render() {
 
 // ─── Status cycle ─────────────────────────────────────────────
 const STATUS_CYCLE = ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled'];
-function cycleStatus(id) {
+async function cycleStatus(id) {
   const b = bookings.find(x => x.id === id);
   if (!b) return;
-  const idx = STATUS_CYCLE.indexOf(b.status);
-  b.status = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
-  saveBookings();
-  render();
+  const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(b.status) + 1) % STATUS_CYCLE.length];
+  const ok = await updateBooking(id, { status: next });
+  if (ok) { b.status = next; render(); }
 }
 
 // ─── Add / Edit Modal ─────────────────────────────────────────
@@ -253,44 +261,41 @@ function clearModal() {
   mSource.value  = 'Website Form';
 }
 
-saveBtn.addEventListener('click', () => {
+saveBtn.addEventListener('click', async () => {
   if (!mName.value.trim() || !mPhone.value.trim() || !mDevice.value.trim() || !mService.value) {
     alert('Please fill in Name, Phone, Device & Problem, and Service.');
     return;
   }
+  saveBtn.textContent = 'Saving…';
+  saveBtn.disabled = true;
 
+  const fields = {
+    name:    mName.value.trim(),
+    phone:   mPhone.value.trim(),
+    device:  mDevice.value.trim(),
+    service: mService.value,
+    date:    mDate.value || null,
+    time:    mTime.value || null,
+    source:  mSource.value,
+    status:  mStatus.value,
+    notes:   mNotes.value.trim()
+  };
+
+  let ok = false;
   if (editingId) {
-    const b = bookings.find(x => x.id === editingId);
-    if (b) {
-      b.name    = mName.value.trim();
-      b.phone   = mPhone.value.trim();
-      b.device  = mDevice.value.trim();
-      b.service = mService.value;
-      b.date    = mDate.value;
-      b.time    = mTime.value;
-      b.source  = mSource.value;
-      b.status  = mStatus.value;
-      b.notes   = mNotes.value.trim();
+    ok = await updateBooking(editingId, fields);
+    if (ok) {
+      const idx = bookings.findIndex(x => x.id === editingId);
+      if (idx !== -1) bookings[idx] = { ...bookings[idx], ...fields };
     }
   } else {
-    bookings.unshift({
-      id:        genId(),
-      name:      mName.value.trim(),
-      phone:     mPhone.value.trim(),
-      device:    mDevice.value.trim(),
-      service:   mService.value,
-      date:      mDate.value,
-      time:      mTime.value,
-      source:    mSource.value,
-      status:    mStatus.value,
-      notes:     mNotes.value.trim(),
-      createdAt: new Date().toISOString()
-    });
+    ok = await insertBooking(fields);
+    if (ok) await loadAndRender();
   }
 
-  saveBookings();
-  render();
-  closeModal();
+  if (ok) { render(); closeModal(); }
+  saveBtn.textContent = 'Save Booking';
+  saveBtn.disabled = false;
 });
 
 [modalClose, cancelModal].forEach(el => el.addEventListener('click', closeModal));
@@ -306,11 +311,13 @@ function closeDelete() {
   deleteId = null;
 }
 
-confirmDelete.addEventListener('click', () => {
-  bookings = bookings.filter(b => b.id !== deleteId);
-  saveBookings();
-  render();
-  closeDelete();
+confirmDelete.addEventListener('click', async () => {
+  const ok = await deleteBooking(deleteId);
+  if (ok) {
+    bookings = bookings.filter(b => b.id !== deleteId);
+    render();
+    closeDelete();
+  }
 });
 [deleteClose, cancelDelete].forEach(el => el.addEventListener('click', closeDelete));
 deleteOverlay.addEventListener('click', e => { if (e.target === deleteOverlay) closeDelete(); });
@@ -331,19 +338,16 @@ addBtn.addEventListener('click', openAdd);
 // ─── Export CSV ───────────────────────────────────────────────
 exportBtn.addEventListener('click', () => {
   if (bookings.length === 0) { alert('No bookings to export.'); return; }
-
   const headers = ['Name','Phone','Device & Problem','Service','Date','Time','Source','Status','Notes','Created At'];
   const rows = bookings.map(b => [
     b.name, b.phone, b.device, b.service, b.date, b.time, b.source, statusLabel(b.status), b.notes,
-    b.createdAt ? new Date(b.createdAt).toLocaleString() : ''
+    b.created_at ? new Date(b.created_at).toLocaleString() : ''
   ].map(v => `"${(v || '').replace(/"/g, '""')}"`));
 
-  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+  const csv  = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `arcanel-bookings-${new Date().toISOString().slice(0,10)}.csv`;
+  const a    = Object.assign(document.createElement('a'), { href: url, download: `arcanel-bookings-${new Date().toISOString().slice(0,10)}.csv` });
   a.click();
   URL.revokeObjectURL(url);
 });
@@ -354,10 +358,8 @@ function esc(str) {
 }
 
 // ─── Init ─────────────────────────────────────────────────────
-if (checkSession()) {
-  loadBookings();
+if (sessionStorage.getItem(SESSION_KEY) === 'true') {
   showDashboard();
-  render();
 } else {
   showLogin();
 }
