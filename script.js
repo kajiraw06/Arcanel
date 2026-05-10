@@ -84,7 +84,7 @@ bookingForm.addEventListener('submit', async (e) => {
   btn.disabled = true;
 
   try {
-    const response = await fetch('https://formspree.io/f/REPLACE_WITH_YOUR_FORM_ID', {
+    const response = await fetch('https://formspree.io/f/maqvljoq', {
       method: 'POST',
       body: new FormData(bookingForm),
       headers: { 'Accept': 'application/json' }
