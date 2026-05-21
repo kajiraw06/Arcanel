@@ -36,100 +36,149 @@
   <!-- ===== DASHBOARD ===== -->
   <div class="dashboard" id="dashboard">
 
-    <!-- Header -->
-    <header class="admin-header">
-      <div class="admin-header-left">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
         <svg width="32" height="32" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="36" height="36" rx="10" fill="rgba(0,229,255,0.15)"/>
-          <path d="M22 5L11 20H17.5L14 31L25 16H18.5L22 5Z" fill="#00e5ff"/>
+          <rect width="36" height="36" rx="10" fill="rgba(124,111,255,0.2)"/>
+          <rect width="36" height="36" rx="10" stroke="rgba(124,111,255,0.4)" stroke-width="1"/>
+          <path d="M22 5L11 20H17.5L14 31L25 16H18.5L22 5Z" fill="#a78bfa"/>
         </svg>
+        <span class="logo-text">Arcanel<span class="accent">Tech</span></span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-item active">
+          <span class="nav-icon">🎫</span>
+          <span>Tickets</span>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="index.html" class="nav-item" target="_blank">
+          <span class="nav-icon">🌐</span>
+          <span>View Website</span>
+        </a>
+        <button class="nav-item nav-btn" id="logoutBtn">
+          <span class="nav-icon">🚪</span>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- Page Header -->
+      <div class="page-header">
         <div>
-          <span class="admin-title">Arcanel<span class="accent">Tech</span></span>
-          <span class="admin-subtitle">Repair Tracker</span>
+          <h1 class="page-title">Tickets</h1>
+          <p class="page-subtitle">Manage all repair tickets</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-ghost btn-sm" id="exportBtn">📥 Export CSV</button>
+          <button class="btn btn-primary" id="addBtn">＋ New Ticket</button>
         </div>
       </div>
-      <div class="admin-header-right">
-        <a href="index.html" class="btn-back" target="_blank">← View Website</a>
-        <button class="btn-logout" id="logoutBtn">Logout</button>
-      </div>
-    </header>
 
-    <!-- Stats -->
-    <div class="stats-bar">
-      <div class="stat-card">
-        <span class="stat-card-num" id="statTotal">0</span>
-        <span class="stat-card-label">Total Tickets</span>
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card stat-total">
+          <div class="stat-icon-bubble">🎫</div>
+          <div class="stat-info">
+            <div class="stat-number" id="statTotal">0</div>
+            <div class="stat-label">Total Tickets</div>
+          </div>
+        </div>
+        <div class="stat-card stat-active">
+          <div class="stat-icon-bubble">🔨</div>
+          <div class="stat-info">
+            <div class="stat-number" id="statInRepair">0</div>
+            <div class="stat-label">In Repair</div>
+          </div>
+        </div>
+        <div class="stat-card stat-ready">
+          <div class="stat-icon-bubble">✅</div>
+          <div class="stat-info">
+            <div class="stat-number" id="statReady">0</div>
+            <div class="stat-label">Ready for Pickup</div>
+          </div>
+        </div>
+        <div class="stat-card stat-overdue">
+          <div class="stat-icon-bubble">⚠️</div>
+          <div class="stat-info">
+            <div class="stat-number" id="statOverdue">0</div>
+            <div class="stat-label">Overdue</div>
+          </div>
+        </div>
+        <div class="stat-card stat-revenue">
+          <div class="stat-icon-bubble">💰</div>
+          <div class="stat-info">
+            <div class="stat-number" id="statRevenue">₱0</div>
+            <div class="stat-label">Revenue (Month)</div>
+          </div>
+        </div>
       </div>
-      <div class="stat-card stat-progress">
-        <span class="stat-card-num" id="statInRepair">0</span>
-        <span class="stat-card-label">In Repair</span>
-      </div>
-      <div class="stat-card stat-done">
-        <span class="stat-card-num" id="statReady">0</span>
-        <span class="stat-card-label">Ready for Pickup</span>
-      </div>
-      <div class="stat-card stat-overdue">
-        <span class="stat-card-num" id="statOverdue">0</span>
-        <span class="stat-card-label">Overdue</span>
-      </div>
-      <div class="stat-card stat-revenue">
-        <span class="stat-card-num" id="statRevenue">₱0</span>
-        <span class="stat-card-label">Revenue (Month)</span>
-      </div>
-    </div>
 
-    <!-- Toolbar -->
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <input type="text" id="searchInput" class="search-input" placeholder="🔍  Search name, device, technician…" />
-        <select id="filterStatus" class="filter-select">
-          <option value="all">All Status</option>
-          <option value="received">Received</option>
-          <option value="diagnosing">Diagnosing</option>
-          <option value="waiting_parts">Waiting for Parts</option>
-          <option value="in_repair">In Repair</option>
-          <option value="ready">Ready for Pickup</option>
-          <option value="delivered">Delivered</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-        <select id="filterPriority" class="filter-select">
-          <option value="all">All Priority</option>
-          <option value="urgent">Urgent</option>
-          <option value="normal">Normal</option>
-          <option value="low">Low</option>
-        </select>
+      <!-- View Tabs -->
+      <div class="view-tabs">
+        <button class="view-tab view-tab-active" id="tabActive">🔧 Active <span class="view-tab-count" id="tabActiveCount">0</span></button>
+        <button class="view-tab" id="tabArchive">📦 Archive <span class="view-tab-count" id="tabArchiveCount">0</span></button>
       </div>
-      <div class="toolbar-right">
-        <button class="btn-export" id="exportBtn">⬇ Export CSV</button>
-        <button class="btn-add" id="addBtn">+ New Ticket</button>
-      </div>
-    </div>
 
-    <!-- Table -->
-    <div class="table-wrap">
-      <table class="bookings-table" id="bookingsTable">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Customer</th>
-            <th>Device</th>
-            <th>Service</th>
-            <th>Priority</th>
-            <th>Status</th>
-            <th>Due Date</th>
-            <th>Technician</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="bookingsBody">
-          <!-- Rows injected by JS -->
-        </tbody>
-      </table>
-      <div class="empty-state" id="emptyState">
-        <span>🎫</span>
-        <p>No tickets yet. Create one to get started.</p>
+      <!-- Search + Chips -->
+      <div class="search-filter-bar">
+        <div class="search-form">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search by customer, device, technician..." />
+          </div>
+        </div>
+        <div class="filter-chips">
+          <span class="filter-label">Status:</span>
+          <button class="chip chip-active" data-status="all">All</button>
+          <button class="chip" data-status="received">Received</button>
+          <button class="chip" data-status="diagnosing">Diagnosing</button>
+          <button class="chip" data-status="waiting_parts">Waiting Parts</button>
+          <button class="chip" data-status="in_repair">In Repair</button>
+          <button class="chip" data-status="ready">Ready</button>
+          <button class="chip" data-status="delivered">Delivered</button>
+          <button class="chip" data-status="cancelled">Cancelled</button>
+        </div>
+        <div class="filter-chips">
+          <span class="filter-label">Priority:</span>
+          <button class="chip chip-active" data-priority="all">All</button>
+          <button class="chip" data-priority="urgent">Urgent</button>
+          <button class="chip" data-priority="normal">Normal</button>
+          <button class="chip" data-priority="low">Low</button>
+        </div>
       </div>
-    </div>
+
+      <!-- Table -->
+      <div class="table-section">
+        <div class="table-wrap">
+          <table class="bookings-table" id="bookingsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Customer</th>
+                <th>Device</th>
+                <th>Service</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Technician</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsBody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyState">
+            <span>🎫</span>
+            <p>No tickets yet. Create one to get started.</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
 
   </div><!-- /dashboard -->
 

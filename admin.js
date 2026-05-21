@@ -33,6 +33,7 @@ let deleteId       = null;
 let viewingId      = null;
 let filterStatus   = 'all';
 let filterPriority = 'all';
+let filterView     = 'active'; // 'active' | 'archive'
 let searchQuery    = '';
 let pinVisible     = false;
 
@@ -45,12 +46,12 @@ const adminPass      = document.getElementById('adminPass');
 const loginError     = document.getElementById('loginError');
 
 const searchInput    = document.getElementById('searchInput');
-const filterSelect   = document.getElementById('filterStatus');
-const filterPriSel   = document.getElementById('filterPriority');
 const addBtn         = document.getElementById('addBtn');
 const exportBtn      = document.getElementById('exportBtn');
 const bookingsBody   = document.getElementById('bookingsBody');
 const emptyState     = document.getElementById('emptyState');
+const tabActive      = document.getElementById('tabActive');
+const tabArchive     = document.getElementById('tabArchive');
 
 // Stats
 const statTotal      = document.getElementById('statTotal');
@@ -180,7 +181,9 @@ function priorityLabel(p) {
 
 function filteredBookings() {
   return bookings.filter(b => {
-    const matchStatus   = filterStatus === 'all' || b.status === filterStatus;
+    const isArchived   = ARCHIVED_STATUSES.includes(b.status);
+    const matchView    = filterView === 'archive' ? isArchived : !isArchived;
+    const matchStatus  = filterStatus === 'all' || b.status === filterStatus;
     const matchPriority = filterPriority === 'all' || (b.priority || 'normal') === filterPriority;
     const q = searchQuery.toLowerCase();
     const matchSearch = !q ||
@@ -192,7 +195,7 @@ function filteredBookings() {
       (b.device       || '').toLowerCase().includes(q) ||
       (b.technician   || '').toLowerCase().includes(q) ||
       (b.service      || '').toLowerCase().includes(q);
-    return matchStatus && matchPriority && matchSearch;
+    return matchView && matchStatus && matchPriority && matchSearch;
   });
 }
 
@@ -305,7 +308,20 @@ function renderTable() {
 
 function render() {
   renderStats();
+  renderTabCounts();
   renderTable();
+}
+
+function renderTabCounts() {
+  const activeCount  = bookings.filter(b => !ARCHIVED_STATUSES.includes(b.status)).length;
+  const archiveCount = bookings.filter(b =>  ARCHIVED_STATUSES.includes(b.status)).length;
+  document.getElementById('tabActiveCount').textContent  = activeCount;
+  document.getElementById('tabArchiveCount').textContent = archiveCount;
+}
+
+function switchTab() {
+  tabActive.classList.toggle('view-tab-active',  filterView === 'active');
+  tabArchive.classList.toggle('view-tab-active', filterView === 'archive');
 }
 
 // ─── Status Cycle ─────────────────────────────────────────────
@@ -419,10 +435,13 @@ function renderNotesList(b) {
   }
   list.innerHTML = notes.map(n => `
     <div class="note-item" data-note-id="${n.id}">
-      <div class="note-text">${esc(n.text)}</div>
-      <div class="note-meta">
-        <span>${fmtDateTime(n.createdAt)}</span>
-        <button class="btn-del-note" data-note-id="${n.id}" title="Delete note">×</button>
+      <div class="note-dot"></div>
+      <div class="note-body">
+        <div class="note-text">${esc(n.text)}</div>
+        <div class="note-meta">
+          <span class="note-time">${fmtDateTime(n.createdAt)}</span>
+          <button class="btn-del-note" data-note-id="${n.id}" title="Delete note">×</button>
+        </div>
       </div>
     </div>
   `).join('');
@@ -654,9 +673,29 @@ deleteOverlay.addEventListener('click', e => { if (e.target === deleteOverlay) c
 
 // ─── Toolbar ──────────────────────────────────────────────────
 searchInput.addEventListener('input', e => { searchQuery = e.target.value; render(); });
-filterSelect.addEventListener('change', e => { filterStatus = e.target.value; render(); });
-filterPriSel.addEventListener('change', e => { filterPriority = e.target.value; render(); });
 addBtn.addEventListener('click', openAdd);
+
+// Tabs
+tabActive.addEventListener('click',  () => { filterView = 'active';  switchTab(); render(); });
+tabArchive.addEventListener('click', () => { filterView = 'archive'; switchTab(); render(); });
+
+// Status chips
+document.querySelectorAll('[data-status]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    filterStatus = chip.dataset.status;
+    document.querySelectorAll('[data-status]').forEach(c => c.classList.toggle('chip-active', c === chip));
+    render();
+  });
+});
+
+// Priority chips
+document.querySelectorAll('[data-priority]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    filterPriority = chip.dataset.priority;
+    document.querySelectorAll('[data-priority]').forEach(c => c.classList.toggle('chip-active', c === chip));
+    render();
+  });
+});
 
 // ─── Export CSV ───────────────────────────────────────────────
 exportBtn.addEventListener('click', () => {
