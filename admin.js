@@ -48,8 +48,11 @@ const loginError     = document.getElementById('loginError');
 const searchInput    = document.getElementById('searchInput');
 const addBtn         = document.getElementById('addBtn');
 const exportBtn      = document.getElementById('exportBtn');
-const bookingsBody   = document.getElementById('bookingsBody');
+const ticketGrid     = document.getElementById('ticketGrid');
 const emptyState     = document.getElementById('emptyState');
+const selectAllRow   = document.getElementById('selectAllRow');
+const selectAllChk   = document.getElementById('selectAllChk');
+const selectAllCount = document.getElementById('selectAllCount');
 const tabActive      = document.getElementById('tabActive');
 const tabArchive     = document.getElementById('tabArchive');
 
@@ -138,14 +141,14 @@ function showLogin() {
 
 // ─── Supabase CRUD ────────────────────────────────────────────
 async function loadAndRender() {
-  bookingsBody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px;">Loading…</td></tr>';
+  ticketGrid.innerHTML = '<p style="text-align:center;color:var(--text-3);padding:40px;">Loading…</p>';
   const { data, error } = await db
     .from('bookings')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (error) {
-    bookingsBody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#ef4444;padding:32px;">Failed to load: ${esc(error.message)}</td></tr>`;
+    ticketGrid.innerHTML = `<p style="text-align:center;color:#ef4444;padding:40px;">Failed to load: ${esc(error.message)}</p>`;
     return;
   }
   bookings = data || [];
@@ -170,6 +173,9 @@ async function deleteTicketDB(id) {
   return true;
 }
 
+// ─── State: selection ─────────────────────────────────────────
+const selectedIds = new Set();
+
 // ─── Render ───────────────────────────────────────────────────
 function statusLabel(s) {
   return STATUSES.find(x => x.key === s)?.label || s;
@@ -178,6 +184,8 @@ function statusLabel(s) {
 function priorityLabel(p) {
   return { urgent: 'Urgent', normal: 'Normal', low: 'Low' }[p] || 'Normal';
 }
+
+const PRIORITY_COLORS = { urgent: '#ef4444', normal: '#6366f1', low: '#64748b' };
 
 function filteredBookings() {
   return bookings.filter(b => {
@@ -242,74 +250,87 @@ function deviceLabel(b) {
   return parts.length ? parts.join(' · ') : (b.device || '—');
 }
 
-function renderTable() {
+function renderCards() {
   const rows = filteredBookings();
-  bookingsBody.innerHTML = '';
+  ticketGrid.innerHTML = '';
 
   if (rows.length === 0) {
     emptyState.classList.add('visible');
+    selectAllRow.style.display = 'none';
     return;
   }
   emptyState.classList.remove('visible');
+  selectAllRow.style.display = '';
+  selectAllCount.textContent = rows.length;
+  selectAllChk.checked = rows.length > 0 && rows.every(b => selectedIds.has(String(b.id)));
 
   rows.forEach(b => {
     const overdue  = isOverdue(b);
     const priority = b.priority || 'normal';
-    const due      = b.due_date || b.dueDate;
-    const tr       = document.createElement('tr');
-    if (overdue) tr.classList.add('row-overdue');
+    const prioColor = PRIORITY_COLORS[priority] || 'transparent';
+    const isSelected = selectedIds.has(String(b.id));
+    const device = [b.device_brand, b.device_model].filter(Boolean).join(' ')
+                   + (b.device_type ? ` (${b.device_type})` : '') || (b.device || '—');
+    const service = b.service || '';
+    const issue   = b.issue_description || '';
+    const dueDate = b.due_date || b.dueDate;
+    const dateStr = b.date ? fmtDate(b.date) : (b.created_at ? fmtDate(b.created_at.slice(0,10)) : '—');
 
-    tr.innerHTML = `
-      <td class="td-num"><span class="ticket-num">#${esc(ticketNum(b))}</span></td>
-      <td class="td-customer">
-        <div class="td-name">${esc(b.name)}</div>
-        <div class="td-phone-small"><a href="tel:${esc(b.phone)}">${esc(b.phone)}</a></div>
-      </td>
-      <td class="td-device-cell"><div class="td-device-main">${esc(deviceLabel(b))}</div></td>
-      <td class="td-service">${esc(b.service || '—')}</td>
-      <td><span class="priority-badge priority-${esc(priority)}">${priorityLabel(priority)}</span></td>
-      <td>
-        <span class="status-badge status-${esc(b.status)}" style="cursor:pointer" data-id="${b.id}" title="Click to advance status">
-          ${statusLabel(b.status)}
-        </span>
-      </td>
-      <td class="td-due${overdue ? ' td-overdue' : ''}">
-        ${due ? fmtDate(due) + (overdue ? ' <span class="overdue-dot">⚠</span>' : '') : '—'}
-      </td>
-      <td class="td-tech">${esc(b.technician || '—')}</td>
-      <td>
-        <div class="action-btns">
-          <button class="btn-view" data-id="${b.id}">View</button>
-          <button class="btn-edit" data-id="${b.id}">Edit</button>
-          <button class="btn-wa-sm" data-id="${b.id}" title="WhatsApp">💬</button>
-          <button class="btn-del" data-id="${b.id}">Del</button>
+    const card = document.createElement('div');
+    card.className = 'ticket-card'
+      + (isSelected ? ' ticket-card-selected' : '')
+      + (overdue    ? ' ticket-card-overdue'  : '');
+    card.style.setProperty('--priority-color', prioColor);
+    card.dataset.id = b.id;
+
+    card.innerHTML = `
+      <div class="ticket-card-header">
+        <div class="ticket-card-header-left">
+          <input type="checkbox" class="bulk-checkbox card-chk" data-id="${b.id}" ${isSelected ? 'checked' : ''}>
+          <span class="ticket-card-id">#${esc(ticketNum(b))}</span>
+          ${priority !== 'normal' ? `<span class="priority-badge priority-${esc(priority)}">${priorityLabel(priority)}</span>` : ''}
         </div>
-      </td>
+        <span class="status-badge status-${esc(b.status)}">${statusLabel(b.status)}</span>
+      </div>
+      <div class="ticket-card-body">
+        <div class="ticket-customer"><span class="tc-icon">👤</span><span>${esc(b.name)}</span></div>
+        <div class="ticket-device"><span class="tc-icon">📱</span><span>${esc(device)}</span></div>
+        ${b.phone    ? `<div class="ticket-phone"><span class="tc-icon">📞</span><span>${esc(b.phone)}</span></div>` : ''}
+        ${b.technician ? `<div class="ticket-phone"><span class="tc-icon">🔧</span><span>${esc(b.technician)}</span></div>` : ''}
+        ${service    ? `<div class="ticket-issue">${esc(service)}${issue ? ' — ' + esc(issue.slice(0,60)) + (issue.length > 60 ? '…' : '') : ''}</div>` : (issue ? `<div class="ticket-issue">${esc(issue.slice(0,80))}${issue.length > 80 ? '…' : ''}</div>` : '')}
+        ${overdue    ? '<div class="ticket-overdue-tag">⚠ Overdue</div>' : ''}
+      </div>
+      <div class="ticket-card-footer">
+        <span class="ticket-date">${dateStr}</span>
+        <div class="ticket-actions">
+          <button class="btn btn-ghost btn-xs card-btn-view" data-id="${b.id}">View</button>
+          <button class="btn btn-ghost btn-xs card-btn-edit" data-id="${b.id}">Edit</button>
+          <button class="btn-wa-xs card-btn-wa" data-id="${b.id}" title="WhatsApp">💬</button>
+          <button class="btn-del-xs card-btn-del" data-id="${b.id}">🗑</button>
+        </div>
+      </div>
     `;
-    bookingsBody.appendChild(tr);
+    ticketGrid.appendChild(card);
   });
 
-  bookingsBody.querySelectorAll('.status-badge[data-id]').forEach(badge => {
-    badge.addEventListener('click', () => cycleStatus(badge.dataset.id));
+  ticketGrid.querySelectorAll('.card-chk').forEach(chk => {
+    chk.addEventListener('change', e => {
+      e.stopPropagation();
+      const id = String(chk.dataset.id);
+      selectedIds.has(id) ? selectedIds.delete(id) : selectedIds.add(id);
+      renderCards();
+    });
   });
-  bookingsBody.querySelectorAll('.btn-view').forEach(btn => {
-    btn.addEventListener('click', () => openView(btn.dataset.id));
-  });
-  bookingsBody.querySelectorAll('.btn-edit').forEach(btn => {
-    btn.addEventListener('click', () => openEdit(btn.dataset.id));
-  });
-  bookingsBody.querySelectorAll('.btn-wa-sm').forEach(btn => {
-    btn.addEventListener('click', () => sendWhatsApp(btn.dataset.id));
-  });
-  bookingsBody.querySelectorAll('.btn-del').forEach(btn => {
-    btn.addEventListener('click', () => openDelete(btn.dataset.id));
-  });
+  ticketGrid.querySelectorAll('.card-btn-view').forEach(btn => btn.addEventListener('click', () => openView(btn.dataset.id)));
+  ticketGrid.querySelectorAll('.card-btn-edit').forEach(btn => btn.addEventListener('click', () => openEdit(btn.dataset.id)));
+  ticketGrid.querySelectorAll('.card-btn-wa').forEach(btn  => btn.addEventListener('click', () => sendWhatsApp(btn.dataset.id)));
+  ticketGrid.querySelectorAll('.card-btn-del').forEach(btn => btn.addEventListener('click', () => openDelete(btn.dataset.id)));
 }
 
 function render() {
   renderStats();
   renderTabCounts();
-  renderTable();
+  renderCards();
 }
 
 function renderTabCounts() {
@@ -674,6 +695,14 @@ deleteOverlay.addEventListener('click', e => { if (e.target === deleteOverlay) c
 // ─── Toolbar ──────────────────────────────────────────────────
 searchInput.addEventListener('input', e => { searchQuery = e.target.value; render(); });
 addBtn.addEventListener('click', openAdd);
+
+// Select all
+selectAllChk.addEventListener('change', () => {
+  const rows = filteredBookings();
+  if (selectAllChk.checked) rows.forEach(b => selectedIds.add(String(b.id)));
+  else                       rows.forEach(b => selectedIds.delete(String(b.id)));
+  renderCards();
+});
 
 // Tabs
 tabActive.addEventListener('click',  () => { filterView = 'active';  switchTab(); render(); });

@@ -152,25 +152,16 @@
         </div>
       </div>
 
-      <!-- Table -->
+      <!-- Ticket Cards -->
       <div class="table-section">
         <div class="table-wrap">
-          <table class="bookings-table" id="bookingsTable">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Customer</th>
-                <th>Device</th>
-                <th>Service</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Due Date</th>
-                <th>Technician</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="bookingsBody"></tbody>
-          </table>
+          <div class="select-all-row" id="selectAllRow" style="display:none">
+            <label class="checkbox-label">
+              <input type="checkbox" class="bulk-checkbox" id="selectAllChk" />
+              <span>Select all (<span id="selectAllCount">0</span>)</span>
+            </label>
+          </div>
+          <div class="ticket-grid" id="ticketGrid"></div>
           <div class="empty-state" id="emptyState">
             <span>🎫</span>
             <p>No tickets yet. Create one to get started.</p>
