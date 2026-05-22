@@ -42,6 +42,7 @@ let currentView      = 'tickets'; // 'tickets' | 'analytics'
 let revenueChartInst = null;
 let statusChartInst  = null;
 let weekChartInst    = null;
+let customerRecords  = {}; // phone → { visit_count, name, last_visit }
 
 // ─── DOM Elements ─────────────────────────────────────────────
 const loginOverlay   = document.getElementById('loginOverlay');
@@ -169,18 +170,65 @@ function showLogin() {
 }
 
 // ─── Supabase CRUD ────────────────────────────────────────────
+async function fetchCustomerRecords() {
+  const { data } = await db.from('customers').select('phone, name, visit_count, last_visit');
+  if (data) {
+    customerRecords = {};
+    data.forEach(c => { customerRecords[c.phone] = c; });
+  }
+}
+
+async function cleanupOldTickets() {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 7);
+  const cutoffISO = cutoff.toISOString();
+
+  const old = bookings.filter(b =>
+    ARCHIVED_STATUSES.includes(b.status) &&
+    (b.updated_at || b.created_at) < cutoffISO
+  );
+  if (old.length === 0) return;
+
+  for (const b of old) {
+    if (b.phone) {
+      const existing = customerRecords[b.phone];
+      if (existing) {
+        await db.from('customers').update({
+          name: b.name,
+          visit_count: existing.visit_count + 1,
+          last_visit: b.updated_at || b.created_at
+        }).eq('phone', b.phone);
+        customerRecords[b.phone] = { ...existing, visit_count: existing.visit_count + 1 };
+      } else {
+        await db.from('customers').insert({
+          phone: b.phone,
+          name: b.name,
+          visit_count: 1,
+          last_visit: b.updated_at || b.created_at
+        });
+        customerRecords[b.phone] = { phone: b.phone, name: b.name, visit_count: 1 };
+      }
+    }
+    await db.from('bookings').delete().eq('id', b.id);
+  }
+
+  const oldIds = new Set(old.map(b => b.id));
+  bookings = bookings.filter(b => !oldIds.has(b.id));
+}
+
 async function loadAndRender() {
   ticketGrid.innerHTML = '<p style="text-align:center;color:var(--text-3);padding:40px;">Loading…</p>';
-  const { data, error } = await db
-    .from('bookings')
-    .select('*')
-    .order('created_at', { ascending: false });
+  const [bookingsRes] = await Promise.all([
+    db.from('bookings').select('*').order('created_at', { ascending: false }),
+    fetchCustomerRecords()
+  ]);
 
-  if (error) {
-    ticketGrid.innerHTML = `<p style="text-align:center;color:#ef4444;padding:40px;">Failed to load: ${esc(error.message)}</p>`;
+  if (bookingsRes.error) {
+    ticketGrid.innerHTML = `<p style="text-align:center;color:#ef4444;padding:40px;">Failed to load: ${esc(bookingsRes.error.message)}</p>`;
     return;
   }
-  bookings = data || [];
+  bookings = bookingsRes.data || [];
+  await cleanupOldTickets();
   render();
 }
 
@@ -281,7 +329,17 @@ function isDueToday(b) {
 }
 
 function isRepeatCustomer(b) {
-  return b.phone && bookings.filter(x => x.phone === b.phone).length > 1;
+  if (!b.phone) return false;
+  const archived = customerRecords[b.phone]?.visit_count || 0;
+  const current  = bookings.filter(x => x.phone === b.phone).length;
+  return (archived + current) > 1;
+}
+
+function totalVisitCount(phone) {
+  if (!phone) return 0;
+  const archived = customerRecords[phone]?.visit_count || 0;
+  const current  = bookings.filter(x => x.phone === phone).length;
+  return archived + current;
 }
 
 function isOverdue(b) {
@@ -675,8 +733,12 @@ custHistoryOverlay.addEventListener('click', e => { if (e.target === custHistory
 
 function openCustomerHistory(phone, name) {
   const related = bookings.filter(b => b.phone === phone);
+  const total = totalVisitCount(phone);
+  const archivedCount = customerRecords[phone]?.visit_count || 0;
   document.getElementById('custHistoryTitle').textContent = name + '\'s History';
-  document.getElementById('custHistorySubtitle').textContent = phone + ' — ' + related.length + ' ticket' + (related.length !== 1 ? 's' : '') + ' total';
+  document.getElementById('custHistorySubtitle').textContent =
+    phone + ' — ' + total + ' visit' + (total !== 1 ? 's' : '') + ' total' +
+    (archivedCount > 0 ? ' (' + archivedCount + ' archived)' : '');
   const grid  = document.getElementById('custHistoryGrid');
   const empty = document.getElementById('custHistoryEmpty');
   grid.innerHTML = '';
