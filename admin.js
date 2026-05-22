@@ -43,8 +43,6 @@ let revenueChartInst = null;
 let statusChartInst  = null;
 let weekChartInst    = null;
 let customerRecordsByName = {}; // name_key → { visit_count, name, phone, last_visit }
-let layoutMode   = localStorage.getItem('arcanel_layout')  || 'grid';    // 'grid' | 'list'
-let densityMode  = localStorage.getItem('arcanel_density') || 'comfy';   // 'comfy' | 'compact'
 let themeMode    = localStorage.getItem('arcanel_theme')   || 'dark';    // 'dark' | 'light'
 let accentColor  = localStorage.getItem('arcanel_accent')  || 'purple';
 
@@ -168,12 +166,8 @@ function applyTheme() {
   document.body.classList.toggle('light-mode', themeMode === 'light');
   const btn = document.getElementById('themeToggleBtn');
   if (btn) btn.textContent = themeMode === 'light' ? '🌙' : '☀️';
-  document.querySelectorAll('.density-btn').forEach(b => b.classList.toggle('active', b.id === (densityMode === 'comfy' ? 'densityComfy' : 'densityCompact')));
-  document.querySelectorAll('.layout-btn').forEach(b => b.classList.toggle('active', b.id === (layoutMode === 'grid' ? 'layoutGrid' : 'layoutList')));
   document.querySelectorAll('.accent-dot').forEach(b => b.classList.toggle('active', b.dataset.accent === accentColor));
   document.documentElement.setAttribute('data-accent', accentColor);
-  ticketGrid.classList.toggle('list-view', layoutMode === 'list');
-  ticketGrid.classList.toggle('compact', densityMode === 'compact');
 }
 
 function setGreeting() {
@@ -199,22 +193,6 @@ document.getElementById('accentPicker')?.querySelectorAll('.accent-dot').forEach
     localStorage.setItem('arcanel_accent', accentColor);
     applyTheme();
   });
-});
-
-// Density toggle
-document.getElementById('densityComfy')?.addEventListener('click', () => {
-  densityMode = 'comfy'; localStorage.setItem('arcanel_density', densityMode); applyTheme();
-});
-document.getElementById('densityCompact')?.addEventListener('click', () => {
-  densityMode = 'compact'; localStorage.setItem('arcanel_density', densityMode); applyTheme();
-});
-
-// Layout toggle
-document.getElementById('layoutGrid')?.addEventListener('click', () => {
-  layoutMode = 'grid'; localStorage.setItem('arcanel_layout', layoutMode); applyTheme();
-});
-document.getElementById('layoutList')?.addEventListener('click', () => {
-  layoutMode = 'list'; localStorage.setItem('arcanel_layout', layoutMode); applyTheme();
 });
 
 // Sidebar collapse
