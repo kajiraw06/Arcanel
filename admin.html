@@ -47,9 +47,13 @@
         <span class="logo-text">Arcanel<span class="accent">Tech</span></span>
       </div>
       <nav class="sidebar-nav">
-        <div class="nav-item active">
+        <div class="nav-item active" id="navTickets">
           <span class="nav-icon">🎫</span>
           <span>Tickets</span>
+        </div>
+        <div class="nav-item" id="navAnalytics">
+          <span class="nav-icon">📊</span>
+          <span>Analytics</span>
         </div>
       </nav>
       <div class="sidebar-footer">
@@ -66,6 +70,7 @@
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
+      <div id="ticketsView">
 
       <!-- Page Header -->
       <div class="page-header">
@@ -116,12 +121,48 @@
             <div class="stat-label">Revenue (Month)</div>
           </div>
         </div>
+        <div class="stat-card stat-today">
+          <div class="stat-icon-bubble">📅</div>
+          <div class="stat-info">
+            <div class="stat-number" id="statDueToday">0</div>
+            <div class="stat-label">Due Today</div>
+          </div>
+        </div>
       </div>
 
-      <!-- View Tabs -->
-      <div class="view-tabs">
-        <button class="view-tab view-tab-active" id="tabActive">🔧 Active <span class="view-tab-count" id="tabActiveCount">0</span></button>
-        <button class="view-tab" id="tabArchive">📦 Archive <span class="view-tab-count" id="tabArchiveCount">0</span></button>
+      <!-- View Tabs + Sort -->
+      <div class="view-tabs-row">
+        <div class="view-tabs">
+          <button class="view-tab view-tab-active" id="tabActive">🔧 Active <span class="view-tab-count" id="tabActiveCount">0</span></button>
+          <button class="view-tab" id="tabArchive">📦 Archive <span class="view-tab-count" id="tabArchiveCount">0</span></button>
+        </div>
+        <select class="sort-select" id="sortSelect">
+          <option value="newest">↓ Newest</option>
+          <option value="oldest">↑ Oldest</option>
+          <option value="due_asc">📅 Due Soon</option>
+          <option value="priority">🔴 Priority</option>
+          <option value="name">A→Z Name</option>
+        </select>
+      </div>
+
+      <!-- Bulk Action Bar -->
+      <div class="bulk-action-bar" id="bulkActionBar" style="display:none">
+        <span class="bulk-info">✓ <span id="bulkCount">0</span> selected</span>
+        <div class="bulk-actions">
+          <select class="bulk-status-select" id="bulkStatusSelect">
+            <option value="">Set Status…</option>
+            <option value="received">Received</option>
+            <option value="diagnosing">Diagnosing</option>
+            <option value="waiting_parts">Waiting for Parts</option>
+            <option value="in_repair">In Repair</option>
+            <option value="ready">Ready for Pickup</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" id="bulkApplyBtn">Apply</button>
+          <button class="btn btn-danger btn-sm" id="bulkDeleteBtn">🗑 Delete</button>
+          <button class="btn btn-ghost btn-sm" id="bulkClearBtn">✕ Clear</button>
+        </div>
       </div>
 
       <!-- Search + Chips -->
@@ -150,6 +191,10 @@
           <button class="chip" data-priority="normal">Normal</button>
           <button class="chip" data-priority="low">Low</button>
         </div>
+        <div class="filter-chips" id="techFilterRow" style="display:none">
+          <span class="filter-label">Tech:</span>
+          <button class="chip chip-active" data-tech="all">All</button>
+        </div>
       </div>
 
       <!-- Ticket Cards -->
@@ -168,6 +213,33 @@
           </div>
         </div>
       </div>
+
+      </div><!-- /ticketsView -->
+
+      <!-- ===== ANALYTICS VIEW ===== -->
+      <div id="analyticsView" style="display:none">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Analytics</h1>
+            <p class="page-subtitle">Business insights &amp; trends</p>
+          </div>
+        </div>
+        <div class="analytics-summary-grid" id="analyticsSummary"></div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-card-title">💰 Revenue — Last 6 Months</div>
+            <canvas id="revenueChart" height="200"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title">🎫 Tickets by Status</div>
+            <canvas id="statusChart" height="200"></canvas>
+          </div>
+          <div class="chart-card chart-card-wide">
+            <div class="chart-card-title">📈 Tickets Opened — Last 14 Days</div>
+            <canvas id="weekChart" height="130"></canvas>
+          </div>
+        </div>
+      </div><!-- /analyticsView -->
 
     </main>
 
@@ -214,6 +286,14 @@
               <div class="info-item"><div class="info-label">Phone</div><div class="info-value" id="vPhone">—</div></div>
               <div class="info-item"><div class="info-label">Email</div><div class="info-value" id="vEmail">—</div></div>
               <div class="info-item"><div class="info-label">Technician</div><div class="info-value" id="vTechnician">—</div></div>
+            </div>
+            <div class="info-full-row" id="vTagsRow" style="display:none">
+              <div class="info-label">Tags</div>
+              <div class="tags-list" id="vTagsList"></div>
+            </div>
+            <div class="info-full-row" style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+              <span id="vRepeatBadge" class="repeat-badge" style="display:none">🔁 Repeat Customer</span>
+              <button class="btn btn-ghost btn-sm" id="viewCustHistoryBtn">🕒 History</button>
             </div>
           </div>
 
@@ -262,6 +342,25 @@
               <div class="cost-item"><div class="cost-label">Parts Cost</div><div class="cost-value" id="vParts">—</div></div>
               <div class="cost-item"><div class="cost-label">Labor Cost</div><div class="cost-value" id="vLabor">—</div></div>
               <div class="cost-item cost-item-final"><div class="cost-label">Final Price</div><div class="cost-value cost-final-val" id="vFinal">—</div></div>
+            </div>
+            <div class="payment-status-row">
+              <span class="info-label">Payment:</span>
+              <span id="vPaymentBadge" class="payment-badge payment-unpaid">Unpaid</span>
+              <select id="vPaymentSelect" class="quick-status-select" style="max-width:170px;margin-left:auto">
+                <option value="unpaid">Unpaid</option>
+                <option value="partial">Partial</option>
+                <option value="paid">Paid ✓</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Repair Checklist -->
+          <div class="view-section">
+            <div class="view-section-title">☑️ Repair Checklist</div>
+            <div class="checklist-list" id="vChecklist"><p class="notes-empty">No steps yet.</p></div>
+            <div class="add-note-form" style="margin-top:10px">
+              <input type="text" class="note-input" id="checklistInput" placeholder="Add a step… e.g. Order screen, Run diagnostics…" autocomplete="off" />
+              <button type="button" class="btn-add-note" id="addChecklistBtn">Add</button>
             </div>
           </div>
 
@@ -451,6 +550,21 @@
 
         <div class="modal-divider"></div>
 
+        <div class="modal-grid">
+          <div class="form-group">
+            <label for="m-payment-status">Payment Status</label>
+            <select id="m-payment-status">
+              <option value="unpaid">Unpaid</option>
+              <option value="partial">Partial Payment</option>
+              <option value="paid">Paid ✓</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="m-tags">Tags (comma-separated)</label>
+            <input type="text" id="m-tags" placeholder="VIP, Warranty, Parts Pending…" />
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="m-notes">General Notes (optional)</label>
           <textarea id="m-notes" rows="2" placeholder="Any additional notes…"></textarea>
@@ -460,6 +574,26 @@
       <div class="modal-footer">
         <button class="btn-cancel-modal" id="cancelModal">Cancel</button>
         <button class="btn-save" id="saveBtn">Save Ticket</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CUSTOMER HISTORY MODAL ===== -->
+  <div class="modal-overlay" id="custHistoryOverlay">
+    <div class="modal modal--view">
+      <div class="modal-header">
+        <div>
+          <h3 id="custHistoryTitle">Customer History</h3>
+          <p style="font-size:0.82rem;color:var(--text-2);margin-top:3px" id="custHistorySubtitle"></p>
+        </div>
+        <button class="modal-close" id="custHistoryClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="ticket-grid" id="custHistoryGrid"></div>
+        <div class="empty-state" id="custHistoryEmpty" style="display:none">
+          <span>🔍</span>
+          <p>No other tickets found for this customer.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -482,6 +616,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>

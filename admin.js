@@ -36,6 +36,12 @@ let filterPriority = 'all';
 let filterView     = 'active'; // 'active' | 'archive'
 let searchQuery    = '';
 let pinVisible     = false;
+let filterTechnician = 'all';
+let sortOrder        = 'newest';
+let currentView      = 'tickets'; // 'tickets' | 'analytics'
+let revenueChartInst = null;
+let statusChartInst  = null;
+let weekChartInst    = null;
 
 // ─── DOM Elements ─────────────────────────────────────────────
 const loginOverlay   = document.getElementById('loginOverlay');
@@ -74,6 +80,29 @@ const viewStatusSel  = document.getElementById('viewStatusSelect');
 const addNoteForm    = document.getElementById('addNoteForm');
 const noteInput      = document.getElementById('noteInput');
 const vPinToggle     = document.getElementById('vPinToggle');
+
+// New feature DOM
+const sortSelect         = document.getElementById('sortSelect');
+const bulkActionBar      = document.getElementById('bulkActionBar');
+const bulkCount          = document.getElementById('bulkCount');
+const bulkStatusSelect   = document.getElementById('bulkStatusSelect');
+const bulkApplyBtn       = document.getElementById('bulkApplyBtn');
+const bulkDeleteBtn      = document.getElementById('bulkDeleteBtn');
+const bulkClearBtn       = document.getElementById('bulkClearBtn');
+const statDueToday       = document.getElementById('statDueToday');
+const navTickets         = document.getElementById('navTickets');
+const navAnalytics       = document.getElementById('navAnalytics');
+const ticketsView        = document.getElementById('ticketsView');
+const analyticsView      = document.getElementById('analyticsView');
+const techFilterRow      = document.getElementById('techFilterRow');
+const mPaymentStatus     = document.getElementById('m-payment-status');
+const mTags              = document.getElementById('m-tags');
+const vPaymentSelect     = document.getElementById('vPaymentSelect');
+const checklistInput     = document.getElementById('checklistInput');
+const addChecklistBtn    = document.getElementById('addChecklistBtn');
+const custHistoryOverlay = document.getElementById('custHistoryOverlay');
+const custHistoryClose   = document.getElementById('custHistoryClose');
+const viewCustHistoryBtn = document.getElementById('viewCustHistoryBtn');
 
 // Form modal
 const modalOverlay   = document.getElementById('modalOverlay');
@@ -157,13 +186,31 @@ async function loadAndRender() {
 
 async function insertTicket(fields) {
   const { error } = await db.from('bookings').insert(fields);
-  if (error) { alert('Error saving ticket: ' + error.message); return false; }
+  if (error) {
+    if (error.message && (error.message.includes('column') || error.message.includes('does not exist'))) {
+      const safe = { ...fields };
+      delete safe.payment_status; delete safe.tags; delete safe.repair_checklist;
+      const { error: e2 } = await db.from('bookings').insert(safe);
+      if (e2) { alert('Error saving ticket: ' + e2.message); return false; }
+      return true;
+    }
+    alert('Error saving ticket: ' + error.message); return false;
+  }
   return true;
 }
 
 async function updateTicket(id, fields) {
   const { error } = await db.from('bookings').update(fields).eq('id', id);
-  if (error) { alert('Error updating ticket: ' + error.message); return false; }
+  if (error) {
+    if (error.message && (error.message.includes('column') || error.message.includes('does not exist'))) {
+      const safe = { ...fields };
+      delete safe.payment_status; delete safe.tags; delete safe.repair_checklist;
+      const { error: e2 } = await db.from('bookings').update(safe).eq('id', id);
+      if (e2) { alert('Error updating ticket: ' + e2.message); return false; }
+      return true;
+    }
+    alert('Error updating ticket: ' + error.message); return false;
+  }
   return true;
 }
 
@@ -188,11 +235,12 @@ function priorityLabel(p) {
 const PRIORITY_COLORS = { urgent: '#ef4444', normal: '#6366f1', low: '#64748b' };
 
 function filteredBookings() {
-  return bookings.filter(b => {
-    const isArchived   = ARCHIVED_STATUSES.includes(b.status);
-    const matchView    = filterView === 'archive' ? isArchived : !isArchived;
-    const matchStatus  = filterStatus === 'all' || b.status === filterStatus;
+  let result = bookings.filter(b => {
+    const isArchived    = ARCHIVED_STATUSES.includes(b.status);
+    const matchView     = filterView === 'archive' ? isArchived : !isArchived;
+    const matchStatus   = filterStatus === 'all' || b.status === filterStatus;
     const matchPriority = filterPriority === 'all' || (b.priority || 'normal') === filterPriority;
+    const matchTech     = filterTechnician === 'all' || (b.technician || '') === filterTechnician;
     const q = searchQuery.toLowerCase();
     const matchSearch = !q ||
       (b.name         || '').toLowerCase().includes(q) ||
@@ -203,8 +251,37 @@ function filteredBookings() {
       (b.device       || '').toLowerCase().includes(q) ||
       (b.technician   || '').toLowerCase().includes(q) ||
       (b.service      || '').toLowerCase().includes(q);
-    return matchView && matchStatus && matchPriority && matchSearch;
+    return matchView && matchStatus && matchPriority && matchSearch && matchTech;
   });
+
+  result.sort((a, b) => {
+    switch (sortOrder) {
+      case 'oldest':   return new Date(a.created_at) - new Date(b.created_at);
+      case 'due_asc': {
+        const da = a.due_date ? new Date(a.due_date + 'T00:00:00') : new Date('9999-12-31');
+        const db = b.due_date ? new Date(b.due_date + 'T00:00:00') : new Date('9999-12-31');
+        return da - db;
+      }
+      case 'priority': {
+        const p = { urgent: 0, normal: 1, low: 2 };
+        return (p[a.priority || 'normal'] || 1) - (p[b.priority || 'normal'] || 1);
+      }
+      case 'name': return (a.name || '').localeCompare(b.name || '');
+      default:     return new Date(b.created_at) - new Date(a.created_at);
+    }
+  });
+  return result;
+}
+
+function isDueToday(b) {
+  const due = b.due_date || b.dueDate;
+  if (!due) return false;
+  const today = new Date().toISOString().split('T')[0];
+  return due === today && !ARCHIVED_STATUSES.includes(b.status);
+}
+
+function isRepeatCustomer(b) {
+  return b.phone && bookings.filter(x => x.phone === b.phone).length > 1;
 }
 
 function isOverdue(b) {
@@ -220,6 +297,7 @@ function renderStats() {
   statInRepair.textContent = bookings.filter(b => ['diagnosing','waiting_parts','in_repair'].includes(b.status)).length;
   statReady.textContent    = bookings.filter(b => b.status === 'ready').length;
   statOverdue.textContent  = bookings.filter(b => isOverdue(b)).length;
+  statDueToday.textContent = bookings.filter(b => isDueToday(b)).length;
 
   const revenue = bookings
     .filter(b => b.status === 'delivered' && new Date(b.updated_at || b.created_at) >= startOfMonth)
@@ -265,8 +343,10 @@ function renderCards() {
   selectAllChk.checked = rows.length > 0 && rows.every(b => selectedIds.has(String(b.id)));
 
   rows.forEach(b => {
-    const overdue  = isOverdue(b);
-    const priority = b.priority || 'normal';
+    const overdue   = isOverdue(b);
+    const dueToday  = isDueToday(b);
+    const repeat    = isRepeatCustomer(b);
+    const priority  = b.priority || 'normal';
     const prioColor = PRIORITY_COLORS[priority] || 'transparent';
     const isSelected = selectedIds.has(String(b.id));
     const device = [b.device_brand, b.device_model].filter(Boolean).join(' ')
@@ -275,11 +355,15 @@ function renderCards() {
     const issue   = b.issue_description || '';
     const dueDate = b.due_date || b.dueDate;
     const dateStr = b.date ? fmtDate(b.date) : (b.created_at ? fmtDate(b.created_at.slice(0,10)) : '—');
+    const payStatus = b.payment_status || 'unpaid';
+    const payColors = { unpaid: '#f87171', partial: '#fcd34d', paid: '#34d399' };
+    const tags = Array.isArray(b.tags) ? b.tags : [];
 
     const card = document.createElement('div');
     card.className = 'ticket-card'
       + (isSelected ? ' ticket-card-selected' : '')
-      + (overdue    ? ' ticket-card-overdue'  : '');
+      + (overdue    ? ' ticket-card-overdue'  : '')
+      + (dueToday && !overdue ? ' ticket-card-due-today' : '');
     card.style.setProperty('--priority-color', prioColor);
     card.dataset.id = b.id;
 
@@ -289,8 +373,12 @@ function renderCards() {
           <input type="checkbox" class="bulk-checkbox card-chk" data-id="${b.id}" ${isSelected ? 'checked' : ''}>
           <span class="ticket-card-id">#${esc(ticketNum(b))}</span>
           ${priority !== 'normal' ? `<span class="priority-badge priority-${esc(priority)}">${priorityLabel(priority)}</span>` : ''}
+          ${repeat ? `<span class="repeat-card-badge">🔁 Repeat</span>` : ''}
         </div>
-        <span class="status-badge status-${esc(b.status)}">${statusLabel(b.status)}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="payment-badge payment-card-badge payment-${esc(payStatus)}" style="color:${payColors[payStatus]}">${payStatus.charAt(0).toUpperCase()+payStatus.slice(1)}</span>
+          <span class="status-badge status-${esc(b.status)}">${statusLabel(b.status)}</span>
+        </div>
       </div>
       <div class="ticket-card-body">
         <div class="ticket-customer"><span class="tc-icon">👤</span><span>${esc(b.name)}</span></div>
@@ -298,6 +386,8 @@ function renderCards() {
         ${b.phone    ? `<div class="ticket-phone"><span class="tc-icon">📞</span><span>${esc(b.phone)}</span></div>` : ''}
         ${b.technician ? `<div class="ticket-phone"><span class="tc-icon">🔧</span><span>${esc(b.technician)}</span></div>` : ''}
         ${service    ? `<div class="ticket-issue">${esc(service)}${issue ? ' — ' + esc(issue.slice(0,60)) + (issue.length > 60 ? '…' : '') : ''}</div>` : (issue ? `<div class="ticket-issue">${esc(issue.slice(0,80))}${issue.length > 80 ? '…' : ''}</div>` : '')}
+        ${tags.length ? `<div class="tags-list" style="margin-top:4px">${tags.slice(0,3).map(t => `<span class="tag-pill" style="padding:2px 7px;font-size:0.68rem">${esc(t)}</span>`).join('')}${tags.length>3?`<span class="tag-pill" style="padding:2px 7px;font-size:0.68rem">+${tags.length-3}</span>`:''}</div>` : ''}
+        ${dueToday   ? '<div class="due-today-tag">📅 Due Today</div>' : ''}
         ${overdue    ? '<div class="ticket-overdue-tag">⚠ Overdue</div>' : ''}
       </div>
       <div class="ticket-card-footer">
@@ -331,6 +421,8 @@ function render() {
   renderStats();
   renderTabCounts();
   renderCards();
+  renderTechFilter();
+  renderBulkBar();
 }
 
 function renderTabCounts() {
@@ -362,6 +454,19 @@ function openView(id) {
   pinVisible = false;
 
   document.getElementById('viewTicketNum').textContent = 'Ticket #' + ticketNum(b);
+
+  // Tags
+  const tags = Array.isArray(b.tags) ? b.tags : [];
+  const tagsRow = document.getElementById('vTagsRow');
+  const tagsList = document.getElementById('vTagsList');
+  tagsRow.style.display = tags.length ? 'block' : 'none';
+  tagsList.innerHTML = tags.map((t, i) => `<span class="tag-pill">${esc(t)}<button class="tag-pill-del" data-idx="${i}">&times;</button></span>`).join('');
+  tagsList.querySelectorAll('.tag-pill-del').forEach(btn => {
+    btn.addEventListener('click', () => removeTag(viewingId, Number(btn.dataset.idx)));
+  });
+
+  // Repeat customer badge
+  document.getElementById('vRepeatBadge').style.display = isRepeatCustomer(b) ? 'inline-flex' : 'none';
 
   const statusBadge = document.getElementById('viewStatusBadge');
   statusBadge.className = 'status-badge status-' + (b.status || 'received');
@@ -425,7 +530,17 @@ function openView(id) {
   document.getElementById('vFinal').textContent    = money(b.final_price) || (autoTotal > 0 ? '₱' + autoTotal.toFixed(2) : '—');
 
   renderNotesList(b);
-  noteInput.value = '';
+  renderChecklist(b);
+  noteInput.value    = '';
+  checklistInput.value = '';
+
+  // Payment status
+  const payStatus = b.payment_status || 'unpaid';
+  const payBadge  = document.getElementById('vPaymentBadge');
+  payBadge.className = 'payment-badge payment-' + payStatus;
+  payBadge.textContent = { unpaid: 'Unpaid', partial: 'Partial', paid: 'Paid ✓' }[payStatus] || 'Unpaid';
+  vPaymentSelect.value = payStatus;
+
   viewOverlay.classList.add('open');
 }
 
@@ -535,6 +650,126 @@ async function deleteNote(ticketId, noteId) {
 viewOverlay.addEventListener('click', e => { if (e.target === viewOverlay) closeView(); });
 function closeView() { viewOverlay.classList.remove('open'); pinVisible = false; }
 
+// Payment status change in view
+vPaymentSelect.addEventListener('change', async () => {
+  const b = bookings.find(x => String(x.id) === String(viewingId));
+  if (!b) return;
+  const newPay = vPaymentSelect.value;
+  const ok = await updateTicket(viewingId, { payment_status: newPay, updated_at: new Date().toISOString() });
+  if (ok) {
+    b.payment_status = newPay;
+    const payBadge = document.getElementById('vPaymentBadge');
+    payBadge.className = 'payment-badge payment-' + newPay;
+    payBadge.textContent = { unpaid: 'Unpaid', partial: 'Partial', paid: 'Paid ✓' }[newPay] || 'Unpaid';
+    render();
+  }
+});
+
+// Customer history
+viewCustHistoryBtn.addEventListener('click', () => {
+  const b = bookings.find(x => String(x.id) === String(viewingId));
+  if (b) openCustomerHistory(b.phone, b.name);
+});
+custHistoryClose.addEventListener('click', () => custHistoryOverlay.classList.remove('open'));
+custHistoryOverlay.addEventListener('click', e => { if (e.target === custHistoryOverlay) custHistoryOverlay.classList.remove('open'); });
+
+function openCustomerHistory(phone, name) {
+  const related = bookings.filter(b => b.phone === phone);
+  document.getElementById('custHistoryTitle').textContent = name + '\'s History';
+  document.getElementById('custHistorySubtitle').textContent = phone + ' — ' + related.length + ' ticket' + (related.length !== 1 ? 's' : '') + ' total';
+  const grid  = document.getElementById('custHistoryGrid');
+  const empty = document.getElementById('custHistoryEmpty');
+  grid.innerHTML = '';
+  if (related.length === 0) { empty.style.display = 'block'; }
+  else {
+    empty.style.display = 'none';
+    related.forEach(b => {
+      const card = document.createElement('div');
+      card.className = 'ticket-card' + (isOverdue(b) ? ' ticket-card-overdue' : '');
+      card.style.setProperty('--priority-color', PRIORITY_COLORS[b.priority||'normal']||'transparent');
+      card.innerHTML = `
+        <div class="ticket-card-header">
+          <span class="ticket-card-id">#${esc(ticketNum(b))}</span>
+          <span class="status-badge status-${esc(b.status)}">${statusLabel(b.status)}</span>
+        </div>
+        <div class="ticket-card-body">
+          <div class="ticket-device"><span class="tc-icon">📱</span><span>${esc([b.device_brand, b.device_model].filter(Boolean).join(' ')||(b.device||'—'))}</span></div>
+          ${b.service ? `<div class="ticket-issue">${esc(b.service)}</div>` : ''}
+        </div>
+        <div class="ticket-card-footer">
+          <span class="ticket-date">${b.date ? fmtDate(b.date) : (b.created_at ? fmtDate(b.created_at.slice(0,10)) : '—')}</span>
+          <button class="btn btn-ghost btn-xs" onclick="custHistoryOverlay.classList.remove('open'); openView('${b.id}')">View</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+  custHistoryOverlay.classList.add('open');
+}
+
+// Checklist functions
+function renderChecklist(b) {
+  const list = document.getElementById('vChecklist');
+  const steps = Array.isArray(b.repair_checklist) ? b.repair_checklist : [];
+  if (steps.length === 0) { list.innerHTML = '<p class="checklist-empty">No steps yet.</p>'; return; }
+  list.innerHTML = steps.map((s, i) => `
+    <div class="checklist-item${s.done ? ' done' : ''}">
+      <input type="checkbox" class="checklist-check" data-idx="${i}" ${s.done ? 'checked' : ''}>
+      <span class="checklist-text${s.done ? ' done' : ''}">${esc(s.text)}</span>
+      <button class="checklist-del" data-idx="${i}">&times;</button>
+    </div>
+  `).join('');
+  list.querySelectorAll('.checklist-check').forEach(chk => {
+    chk.addEventListener('change', () => toggleChecklistItem(viewingId, Number(chk.dataset.idx), chk.checked));
+  });
+  list.querySelectorAll('.checklist-del').forEach(btn => {
+    btn.addEventListener('click', () => deleteChecklistItem(viewingId, Number(btn.dataset.idx)));
+  });
+}
+
+addChecklistBtn.addEventListener('click', () => {
+  const text = checklistInput.value.trim();
+  if (!text || !viewingId) return;
+  addChecklistItem(viewingId, text);
+  checklistInput.value = '';
+});
+checklistInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addChecklistBtn.click(); } });
+
+async function addChecklistItem(id, text) {
+  const b = bookings.find(x => String(x.id) === String(id));
+  if (!b) return;
+  const steps = Array.isArray(b.repair_checklist) ? [...b.repair_checklist] : [];
+  steps.push({ id: Date.now(), text, done: false });
+  const ok = await updateTicket(id, { repair_checklist: steps, updated_at: new Date().toISOString() });
+  if (ok) { b.repair_checklist = steps; renderChecklist(b); }
+}
+
+async function toggleChecklistItem(id, idx, done) {
+  const b = bookings.find(x => String(x.id) === String(id));
+  if (!b) return;
+  const steps = Array.isArray(b.repair_checklist) ? [...b.repair_checklist] : [];
+  if (steps[idx]) steps[idx].done = done;
+  const ok = await updateTicket(id, { repair_checklist: steps, updated_at: new Date().toISOString() });
+  if (ok) { b.repair_checklist = steps; renderChecklist(b); }
+}
+
+async function deleteChecklistItem(id, idx) {
+  const b = bookings.find(x => String(x.id) === String(id));
+  if (!b) return;
+  const steps = (Array.isArray(b.repair_checklist) ? [...b.repair_checklist] : []).filter((_, i) => i !== idx);
+  const ok = await updateTicket(id, { repair_checklist: steps, updated_at: new Date().toISOString() });
+  if (ok) { b.repair_checklist = steps; renderChecklist(b); }
+}
+
+// Tag removal in view
+async function removeTag(id, idx) {
+  const b = bookings.find(x => String(x.id) === String(id));
+  if (!b) return;
+  const tags = (Array.isArray(b.tags) ? [...b.tags] : []).filter((_, i) => i !== idx);
+  const ok = await updateTicket(id, { tags, updated_at: new Date().toISOString() });
+  if (ok) { b.tags = tags; openView(id); }
+}
+
 viewEditBtn.addEventListener('click', () => {
   const id = viewingId;
   closeView();
@@ -563,13 +798,14 @@ function sendWhatsApp(id) {
 // ─── Add / Edit Modal ─────────────────────────────────────────
 function clearForm() {
   [mName, mPhone, mEmail, mDeviceBrand, mDeviceModel, mDevicePin, mTechnician,
-   mIssue, mDate, mDueDate, mWarranty, mEstCost, mPartsCost, mLaborCost, mFinalPrice, mNotes].forEach(el => el.value = '');
-  mDeviceType.value = '';
-  mService.value    = '';
-  mPriority.value   = 'normal';
-  mStatus.value     = 'received';
-  mSource.value     = 'Website Form';
-  mDevicePin.type   = 'password';
+   mIssue, mDate, mDueDate, mWarranty, mEstCost, mPartsCost, mLaborCost, mFinalPrice, mNotes, mTags].forEach(el => el.value = '');
+  mDeviceType.value      = '';
+  mService.value         = '';
+  mPriority.value        = 'normal';
+  mStatus.value          = 'received';
+  mSource.value          = 'Website Form';
+  mPaymentStatus.value   = 'unpaid';
+  mDevicePin.type        = 'password';
   pinToggleBtn.textContent = '👁';
 }
 
@@ -611,6 +847,8 @@ function openEdit(id) {
   mLaborCost.value     = b.labor_cost        || '';
   mFinalPrice.value    = b.final_price       || '';
   mNotes.value         = b.notes             || '';
+  mPaymentStatus.value = b.payment_status    || 'unpaid';
+  mTags.value          = Array.isArray(b.tags) ? b.tags.join(', ') : '';
 
   mDevicePin.type = 'password';
   pinToggleBtn.textContent = '👁';
@@ -653,6 +891,8 @@ saveBtn.addEventListener('click', async () => {
     labor_cost:        mLaborCost.value ? parseFloat(mLaborCost.value)  : null,
     final_price:       mFinalPrice.value? parseFloat(mFinalPrice.value) : null,
     notes:             mNotes.value.trim() || null,
+    payment_status:    mPaymentStatus.value || 'unpaid',
+    tags:              mTags.value.trim() ? mTags.value.split(',').map(t => t.trim()).filter(Boolean) : [],
     updated_at:        new Date().toISOString(),
   };
 
@@ -726,18 +966,159 @@ document.querySelectorAll('[data-priority]').forEach(chip => {
   });
 });
 
+// ─── Technician Filter ────────────────────────────────────────
+function renderTechFilter() {
+  const techs = [...new Set(bookings.map(b => b.technician).filter(Boolean))].sort();
+  techFilterRow.style.display = techs.length === 0 ? 'none' : 'flex';
+  techFilterRow.innerHTML = '<span class="filter-label">Tech:</span>';
+  [{ val: 'all', label: 'All' }, ...techs.map(t => ({ val: t, label: t }))].forEach(({ val, label }) => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (filterTechnician === val ? ' chip-active' : '');
+    btn.dataset.tech = val;
+    btn.textContent = label;
+    btn.addEventListener('click', () => { filterTechnician = val; render(); });
+    techFilterRow.appendChild(btn);
+  });
+}
+
+// ─── Bulk Actions ─────────────────────────────────────────────
+function renderBulkBar() {
+  const count = selectedIds.size;
+  bulkActionBar.style.display = count > 0 ? 'flex' : 'none';
+  bulkCount.textContent = count;
+}
+
+bulkApplyBtn.addEventListener('click', async () => {
+  const status = bulkStatusSelect.value;
+  if (!status || selectedIds.size === 0) return;
+  const ids = [...selectedIds];
+  bulkApplyBtn.textContent = 'Applying…';
+  for (const id of ids) {
+    const ok = await updateTicket(id, { status, updated_at: new Date().toISOString() });
+    if (ok) { const b = bookings.find(x => String(x.id) === id); if (b) { b.status = status; b.updated_at = new Date().toISOString(); } }
+  }
+  bulkStatusSelect.value = '';
+  bulkApplyBtn.textContent = 'Apply';
+  render();
+});
+
+bulkDeleteBtn.addEventListener('click', async () => {
+  if (selectedIds.size === 0) return;
+  if (!confirm(`Delete ${selectedIds.size} ticket(s)? This cannot be undone.`)) return;
+  const ids = [...selectedIds];
+  for (const id of ids) {
+    await deleteTicketDB(id);
+    bookings = bookings.filter(b => String(b.id) !== id);
+  }
+  selectedIds.clear();
+  render();
+});
+
+bulkClearBtn.addEventListener('click', () => { selectedIds.clear(); render(); });
+
+// ─── Sort ─────────────────────────────────────────────────────
+sortSelect.addEventListener('change', () => { sortOrder = sortSelect.value; render(); });
+
+// ─── View Switch (Tickets / Analytics) ────────────────────────
+navTickets.addEventListener('click', () => switchView('tickets'));
+navAnalytics.addEventListener('click', () => switchView('analytics'));
+
+function switchView(view) {
+  currentView = view;
+  ticketsView.style.display   = view === 'tickets'   ? '' : 'none';
+  analyticsView.style.display = view === 'analytics' ? '' : 'none';
+  navTickets.classList.toggle('active',   view === 'tickets');
+  navAnalytics.classList.toggle('active', view === 'analytics');
+  if (view === 'analytics') renderAnalytics();
+}
+
+// ─── Analytics ────────────────────────────────────────────────
+function renderAnalytics() {
+  // Summary cards
+  const thisWeekStart = new Date(); thisWeekStart.setDate(thisWeekStart.getDate() - 7);
+  const weekCount  = bookings.filter(b => new Date(b.created_at) >= thisWeekStart).length;
+  const delivered  = bookings.filter(b => b.status === 'delivered').length;
+  const allRevenue = bookings.reduce((s, b) => {
+    const fp = parseFloat(b.final_price);
+    if (!isNaN(fp) && fp > 0) return s + fp;
+    return s + (parseFloat(b.parts_cost)||0) + (parseFloat(b.labor_cost)||0);
+  }, 0);
+  const avgRev = delivered > 0 ? allRevenue / delivered : 0;
+
+  document.getElementById('analyticsSummary').innerHTML = [
+    ['₱' + allRevenue.toLocaleString('en-PH',{maximumFractionDigits:0}), 'All-time Revenue'],
+    [weekCount,   'Tickets This Week'],
+    [bookings.length, 'Total Tickets'],
+    [delivered,   'Completed Repairs'],
+    ['₱' + avgRev.toLocaleString('en-PH',{maximumFractionDigits:0}), 'Avg Revenue / Job'],
+  ].map(([n, l]) => `<div class="analytics-stat"><div class="analytics-stat-num">${n}</div><div class="analytics-stat-label">${l}</div></div>`).join('');
+
+  // Revenue last 6 months
+  const now = new Date();
+  const months = [], revenues = [];
+  for (let i = 5; i >= 0; i--) {
+    const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const end   = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
+    months.push(start.toLocaleString('en-PH', { month: 'short', year: '2-digit' }));
+    const rev = bookings
+      .filter(b => b.status === 'delivered' && b.updated_at && new Date(b.updated_at) >= start && new Date(b.updated_at) <= end)
+      .reduce((s, b) => { const fp = parseFloat(b.final_price); return s + (!isNaN(fp) && fp > 0 ? fp : (parseFloat(b.parts_cost)||0) + (parseFloat(b.labor_cost)||0)); }, 0);
+    revenues.push(rev);
+  }
+
+  // Status distribution
+  const statusCounts = {};
+  STATUSES.forEach(s => statusCounts[s.key] = 0);
+  bookings.forEach(b => { if (statusCounts[b.status] !== undefined) statusCounts[b.status]++; });
+
+  // Last 14 days
+  const dayLabels = [], dayCounts = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = d.toISOString().split('T')[0];
+    dayLabels.push(d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }));
+    dayCounts.push(bookings.filter(b => b.created_at && b.created_at.startsWith(ds)).length);
+  }
+
+  const gridColor = 'rgba(255,255,255,0.05)', tickColor = '#8b94b3';
+  const baseScales = { x: { grid: { color: gridColor }, ticks: { color: tickColor } }, y: { grid: { color: gridColor }, ticks: { color: tickColor } } };
+
+  if (revenueChartInst) revenueChartInst.destroy();
+  revenueChartInst = new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: { labels: months, datasets: [{ label: 'Revenue (₱)', data: revenues, backgroundColor: 'rgba(124,111,255,0.6)', borderColor: 'rgba(124,111,255,1)', borderWidth: 1, borderRadius: 6 }] },
+    options: { responsive: true, plugins: { legend: { labels: { color: tickColor } } }, scales: baseScales }
+  });
+
+  const statusColors = { received:'rgba(91,139,210,0.75)',diagnosing:'rgba(245,158,11,0.75)',waiting_parts:'rgba(249,115,22,0.75)',in_repair:'rgba(124,111,255,0.75)',ready:'rgba(16,185,129,0.75)',delivered:'rgba(107,114,128,0.75)',cancelled:'rgba(239,68,68,0.75)' };
+  if (statusChartInst) statusChartInst.destroy();
+  statusChartInst = new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: { labels: STATUSES.map(s => s.label), datasets: [{ data: STATUSES.map(s => statusCounts[s.key]), backgroundColor: STATUSES.map(s => statusColors[s.key]), borderColor: 'rgba(255,255,255,0.04)', borderWidth: 1 }] },
+    options: { responsive: true, plugins: { legend: { labels: { color: tickColor, boxWidth: 12 } } } }
+  });
+
+  if (weekChartInst) weekChartInst.destroy();
+  weekChartInst = new Chart(document.getElementById('weekChart'), {
+    type: 'line',
+    data: { labels: dayLabels, datasets: [{ label: 'Tickets Opened', data: dayCounts, fill: true, backgroundColor: 'rgba(124,111,255,0.1)', borderColor: 'rgba(124,111,255,0.8)', tension: 0.4, pointBackgroundColor: '#7c6fff', pointRadius: 4 }] },
+    options: { responsive: true, plugins: { legend: { labels: { color: tickColor } } }, scales: baseScales }
+  });
+}
+
 // ─── Export CSV ───────────────────────────────────────────────
 exportBtn.addEventListener('click', () => {
   if (bookings.length === 0) { alert('No tickets to export.'); return; }
   const headers = [
     'Ticket #','Name','Phone','Email','Device Type','Brand','Model',
-    'Service','Priority','Status','Technician','Issue',
+    'Service','Priority','Status','Payment','Technician','Issue','Tags',
     'Est. Cost','Parts Cost','Labor Cost','Final Price',
     'Drop-off Date','Due Date','Warranty Days','Source','Notes','Created At'
   ];
   const rows = bookings.map(b => [
     ticketNum(b), b.name, b.phone, b.email, b.device_type, b.device_brand, b.device_model,
-    b.service, b.priority, statusLabel(b.status), b.technician, b.issue_description,
+    b.service, b.priority, statusLabel(b.status), b.payment_status||'unpaid', b.technician, b.issue_description,
+    Array.isArray(b.tags) ? b.tags.join('; ') : '',
     b.estimated_cost, b.parts_cost, b.labor_cost, b.final_price,
     b.date, b.due_date, b.warranty_days, b.source, b.notes,
     b.created_at ? new Date(b.created_at).toLocaleString() : ''
