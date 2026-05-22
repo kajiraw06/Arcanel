@@ -42,7 +42,7 @@ let currentView      = 'tickets'; // 'tickets' | 'analytics'
 let revenueChartInst = null;
 let statusChartInst  = null;
 let weekChartInst    = null;
-let customerRecords  = {}; // phone → { visit_count, name, last_visit }
+let customerRecordsByName = {}; // name_key → { visit_count, name, phone, last_visit }
 
 // ─── DOM Elements ─────────────────────────────────────────────
 const loginOverlay   = document.getElementById('loginOverlay');
@@ -171,10 +171,10 @@ function showLogin() {
 
 // ─── Supabase CRUD ────────────────────────────────────────────
 async function fetchCustomerRecords() {
-  const { data } = await db.from('customers').select('phone, name, visit_count, last_visit');
+  const { data } = await db.from('customers').select('name_key, name, phone, visit_count, last_visit');
   if (data) {
-    customerRecords = {};
-    data.forEach(c => { customerRecords[c.phone] = c; });
+    customerRecordsByName = {};
+    data.forEach(c => { if (c.name_key) customerRecordsByName[c.name_key] = c; });
   }
 }
 
@@ -190,23 +190,20 @@ async function cleanupOldTickets() {
   if (old.length === 0) return;
 
   for (const b of old) {
-    if (b.phone) {
-      const existing = customerRecords[b.phone];
+    if (b.name) {
+      const nameKey = b.name.trim().toLowerCase();
+      const existing = customerRecordsByName[nameKey];
       if (existing) {
         await db.from('customers').update({
-          name: b.name,
+          phone: b.phone || existing.phone,
           visit_count: existing.visit_count + 1,
           last_visit: b.updated_at || b.created_at
-        }).eq('phone', b.phone);
-        customerRecords[b.phone] = { ...existing, visit_count: existing.visit_count + 1 };
+        }).eq('name_key', nameKey);
+        customerRecordsByName[nameKey] = { ...existing, visit_count: existing.visit_count + 1 };
       } else {
-        await db.from('customers').insert({
-          phone: b.phone,
-          name: b.name,
-          visit_count: 1,
-          last_visit: b.updated_at || b.created_at
-        });
-        customerRecords[b.phone] = { phone: b.phone, name: b.name, visit_count: 1 };
+        const rec = { name_key: nameKey, name: b.name, phone: b.phone || null, visit_count: 1, last_visit: b.updated_at || b.created_at };
+        await db.from('customers').insert(rec);
+        customerRecordsByName[nameKey] = rec;
       }
     }
     await db.from('bookings').delete().eq('id', b.id);
@@ -329,16 +326,18 @@ function isDueToday(b) {
 }
 
 function isRepeatCustomer(b) {
-  if (!b.phone) return false;
-  const archived = customerRecords[b.phone]?.visit_count || 0;
-  const current  = bookings.filter(x => x.phone === b.phone).length;
+  if (!b.name) return false;
+  const nameKey = b.name.trim().toLowerCase();
+  const archived = customerRecordsByName[nameKey]?.visit_count || 0;
+  const current  = bookings.filter(x => x.name?.trim().toLowerCase() === nameKey).length;
   return (archived + current) > 1;
 }
 
-function totalVisitCount(phone) {
-  if (!phone) return 0;
-  const archived = customerRecords[phone]?.visit_count || 0;
-  const current  = bookings.filter(x => x.phone === phone).length;
+function totalVisitCount(name) {
+  if (!name) return 0;
+  const nameKey  = name.trim().toLowerCase();
+  const archived = customerRecordsByName[nameKey]?.visit_count || 0;
+  const current  = bookings.filter(x => x.name?.trim().toLowerCase() === nameKey).length;
   return archived + current;
 }
 
@@ -732,12 +731,14 @@ custHistoryClose.addEventListener('click', () => custHistoryOverlay.classList.re
 custHistoryOverlay.addEventListener('click', e => { if (e.target === custHistoryOverlay) custHistoryOverlay.classList.remove('open'); });
 
 function openCustomerHistory(phone, name) {
-  const related = bookings.filter(b => b.phone === phone);
-  const total = totalVisitCount(phone);
-  const archivedCount = customerRecords[phone]?.visit_count || 0;
+  const nameKey = name?.trim().toLowerCase();
+  const related = bookings.filter(b => b.name?.trim().toLowerCase() === nameKey);
+  const total = totalVisitCount(name);
+  const archivedCount = customerRecordsByName[nameKey]?.visit_count || 0;
   document.getElementById('custHistoryTitle').textContent = name + '\'s History';
+  const sub = phone ? phone + ' — ' : '';
   document.getElementById('custHistorySubtitle').textContent =
-    phone + ' — ' + total + ' visit' + (total !== 1 ? 's' : '') + ' total' +
+    sub + total + ' visit' + (total !== 1 ? 's' : '') + ' total' +
     (archivedCount > 0 ? ' (' + archivedCount + ' archived)' : '');
   const grid  = document.getElementById('custHistoryGrid');
   const empty = document.getElementById('custHistoryEmpty');
