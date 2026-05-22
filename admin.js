@@ -934,12 +934,11 @@ function populateNameDatalist() {
 
 function clearForm() {
   [mName, mPhone, mEmail, mDeviceBrand, mDeviceModel, mDevicePin, mTechnician,
-   mIssue, mDate, mDueDate, mWarranty, mEstCost, mPartsCost, mLaborCost, mFinalPrice, mNotes, mTags].forEach(el => el.value = '');
+   mIssue, mDate, mDueDate, mWarranty, mPartsCost, mLaborCost, mNotes, mTags].forEach(el => el.value = '');
   mDeviceType.value      = '';
   mService.value         = '';
   mPriority.value        = 'normal';
   mStatus.value          = 'received';
-  mSource.value          = 'Website Form';
   mPaymentStatus.value   = 'unpaid';
   mDevicePin.type        = 'password';
   pinToggleBtn.textContent = '👁';
@@ -977,12 +976,9 @@ function openEdit(id) {
   mIssue.value         = b.issue_description || '';
   mDate.value          = b.date              || '';
   mDueDate.value       = b.due_date          || '';
-  mSource.value        = b.source            || 'Website Form';
   mWarranty.value      = b.warranty_days     || '';
-  mEstCost.value       = b.estimated_cost    || '';
-  mPartsCost.value     = b.parts_cost        || '';
+  mPartsCost.value    = b.parts_cost        || '';
   mLaborCost.value     = b.labor_cost        || '';
-  mFinalPrice.value    = b.final_price       || '';
   mNotes.value         = b.notes             || '';
   mPaymentStatus.value = b.payment_status    || 'unpaid';
   mTags.value          = Array.isArray(b.tags) ? b.tags.join(', ') : '';
@@ -1022,12 +1018,9 @@ saveBtn.addEventListener('click', async () => {
     issue_description: mIssue.value.trim()         || null,
     date:              mDate.value                 || null,
     due_date:          mDueDate.value              || null,
-    source:            mSource.value,
     warranty_days:     mWarranty.value  ? parseInt(mWarranty.value)     : null,
-    estimated_cost:    mEstCost.value   ? parseFloat(mEstCost.value)    : null,
     parts_cost:        mPartsCost.value ? parseFloat(mPartsCost.value)  : null,
     labor_cost:        mLaborCost.value ? parseFloat(mLaborCost.value)  : null,
-    final_price:       mFinalPrice.value? parseFloat(mFinalPrice.value) : null,
     notes:             mNotes.value.trim() || null,
     payment_status:    mPaymentStatus.value || 'unpaid',
     tags:              mTags.value.trim() ? mTags.value.split(',').map(t => t.trim()).filter(Boolean) : [],
