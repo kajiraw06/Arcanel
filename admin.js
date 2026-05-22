@@ -859,6 +859,16 @@ function sendWhatsApp(id) {
 }
 
 // ─── Add / Edit Modal ─────────────────────────────────────────
+function populateNameDatalist() {
+  const dl = document.getElementById('customerNameList');
+  if (!dl) return;
+  const fromBookings = bookings.map(b => b.name).filter(Boolean);
+  const fromArchived = Object.values(customerRecordsByName).map(c => c.name).filter(Boolean);
+  const unique = [...new Set([...fromBookings, ...fromArchived].map(n => n.trim()))]
+    .sort((a, b) => a.localeCompare(b));
+  dl.innerHTML = unique.map(n => `<option value="${n.replace(/"/g, '&quot;')}"></option>`).join('');
+}
+
 function clearForm() {
   [mName, mPhone, mEmail, mDeviceBrand, mDeviceModel, mDevicePin, mTechnician,
    mIssue, mDate, mDueDate, mWarranty, mEstCost, mPartsCost, mLaborCost, mFinalPrice, mNotes, mTags].forEach(el => el.value = '');
@@ -877,6 +887,7 @@ function openAdd() {
   editId.value = '';
   modalTitle.textContent = '🎫 New Repair Ticket';
   clearForm();
+  populateNameDatalist();
   mDate.value = new Date().toISOString().split('T')[0];
   modalOverlay.classList.add('open');
   mName.focus();
@@ -913,6 +924,7 @@ function openEdit(id) {
   mPaymentStatus.value = b.payment_status    || 'unpaid';
   mTags.value          = Array.isArray(b.tags) ? b.tags.join(', ') : '';
 
+  populateNameDatalist();
   mDevicePin.type = 'password';
   pinToggleBtn.textContent = '👁';
   modalOverlay.classList.add('open');
