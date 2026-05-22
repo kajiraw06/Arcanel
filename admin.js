@@ -924,7 +924,7 @@ pinToggleBtn.addEventListener('click', () => {
 });
 
 saveBtn.addEventListener('click', async () => {
-  if (!mName.value.trim() || !mPhone.value.trim() || !mDeviceType.value || !mService.value) {
+  if (!mName.value.trim() || !mDeviceType.value || !mService.value) {
     alert('Please fill in: Customer Name, Phone, Device Type, and Service.');
     return;
   }
