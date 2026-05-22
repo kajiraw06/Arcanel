@@ -860,14 +860,21 @@ function sendWhatsApp(id) {
 
 // ─── Add / Edit Modal ─────────────────────────────────────────
 function populateNameDatalist() {
+  // Populated on input, not on open — see mName input listener below
+  const dl = document.getElementById('customerNameList');
+  if (dl) dl.innerHTML = '';
+}
+
+mName.addEventListener('input', () => {
   const dl = document.getElementById('customerNameList');
   if (!dl) return;
+  if (!mName.value.trim()) { dl.innerHTML = ''; return; }
   const fromBookings = bookings.map(b => b.name).filter(Boolean);
   const fromArchived = Object.values(customerRecordsByName).map(c => c.name).filter(Boolean);
   const unique = [...new Set([...fromBookings, ...fromArchived].map(n => n.trim()))]
     .sort((a, b) => a.localeCompare(b));
   dl.innerHTML = unique.map(n => `<option value="${n.replace(/"/g, '&quot;')}"></option>`).join('');
-}
+});
 
 function clearForm() {
   [mName, mPhone, mEmail, mDeviceBrand, mDeviceModel, mDevicePin, mTechnician,
