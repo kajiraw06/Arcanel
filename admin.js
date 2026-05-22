@@ -546,9 +546,7 @@ function renderCards() {
           <span class="tc-date">${dateStr}</span>
         </div>
         <div class="ticket-actions">
-          <button class="btn btn-ghost btn-xs card-btn-view" data-id="${b.id}">View</button>
           <button class="btn btn-ghost btn-xs card-btn-edit" data-id="${b.id}">Edit</button>
-          <button class="btn-wa-xs card-btn-wa" data-id="${b.id}" title="WhatsApp">💬</button>
           <button class="btn-del-xs card-btn-del" data-id="${b.id}">🗑</button>
         </div>
       </div>
@@ -564,10 +562,15 @@ function renderCards() {
       renderCards();
     });
   });
-  ticketGrid.querySelectorAll('.card-btn-view').forEach(btn => btn.addEventListener('click', () => openView(btn.dataset.id)));
-  ticketGrid.querySelectorAll('.card-btn-edit').forEach(btn => btn.addEventListener('click', () => openEdit(btn.dataset.id)));
-  ticketGrid.querySelectorAll('.card-btn-wa').forEach(btn  => btn.addEventListener('click', () => sendWhatsApp(btn.dataset.id)));
-  ticketGrid.querySelectorAll('.card-btn-del').forEach(btn => btn.addEventListener('click', () => openDelete(btn.dataset.id)));
+  // Clicking the card body opens view; buttons handle edit/delete
+  ticketGrid.querySelectorAll('.ticket-card').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.closest('button') || e.target.closest('input')) return;
+      openView(card.dataset.id);
+    });
+  });
+  ticketGrid.querySelectorAll('.card-btn-edit').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); openEdit(btn.dataset.id); }));
+  ticketGrid.querySelectorAll('.card-btn-del').forEach(btn  => btn.addEventListener('click', e => { e.stopPropagation(); openDelete(btn.dataset.id); }));
 }
 
 function render() {

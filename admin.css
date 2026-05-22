@@ -431,6 +431,7 @@ body.light-mode input, body.light-mode select, body.light-mode textarea { backgr
   display: flex; flex-direction: column;
   transition: all 0.22s ease;
   overflow: hidden;
+  cursor: pointer;
 }
 .ticket-card:hover {
   border-color: var(--border-hover);
