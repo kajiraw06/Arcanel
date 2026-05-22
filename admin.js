@@ -432,7 +432,7 @@ function renderStats() {
   const now          = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  statTotal.textContent    = bookings.length;
+  statTotal.textContent    = bookings.filter(b => !ARCHIVED_STATUSES.includes(b.status)).length;
   statInRepair.textContent = bookings.filter(b => ['diagnosing','waiting_parts','in_repair'].includes(b.status)).length;
   statReady.textContent    = bookings.filter(b => b.status === 'ready').length;
   statOverdue.textContent  = bookings.filter(b => isOverdue(b)).length;
