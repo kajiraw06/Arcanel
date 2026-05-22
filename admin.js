@@ -859,22 +859,78 @@ function sendWhatsApp(id) {
 }
 
 // ─── Add / Edit Modal ─────────────────────────────────────────
-function populateNameDatalist() {
-  // Populated on input, not on open — see mName input listener below
-  const dl = document.getElementById('customerNameList');
-  if (dl) dl.innerHTML = '';
-}
+// ─── Custom Name Autocomplete ────────────────────────────────
+const nameAutocomplete = document.getElementById('nameAutocomplete');
+let acActiveIdx = -1;
 
-mName.addEventListener('input', () => {
-  const dl = document.getElementById('customerNameList');
-  if (!dl) return;
-  if (!mName.value.trim()) { dl.innerHTML = ''; return; }
+function getKnownNames() {
   const fromBookings = bookings.map(b => b.name).filter(Boolean);
   const fromArchived = Object.values(customerRecordsByName).map(c => c.name).filter(Boolean);
-  const unique = [...new Set([...fromBookings, ...fromArchived].map(n => n.trim()))]
+  return [...new Set([...fromBookings, ...fromArchived].map(n => n.trim()))]
     .sort((a, b) => a.localeCompare(b));
-  dl.innerHTML = unique.map(n => `<option value="${n.replace(/"/g, '&quot;')}"></option>`).join('');
+}
+
+function isKnownRepeat(name) {
+  const key = name.trim().toLowerCase();
+  const archived = customerRecordsByName[key]?.visit_count || 0;
+  const current  = bookings.filter(x => x.name?.trim().toLowerCase() === key).length;
+  return (archived + current) > 1;
+}
+
+function showAutocomplete(query) {
+  const q = query.trim().toLowerCase();
+  nameAutocomplete.innerHTML = '';
+  acActiveIdx = -1;
+  if (!q) { nameAutocomplete.classList.remove('open'); return; }
+  const matches = getKnownNames().filter(n => n.toLowerCase().includes(q));
+  if (!matches.length) { nameAutocomplete.classList.remove('open'); return; }
+  matches.forEach((name, i) => {
+    const repeat = isKnownRepeat(name);
+    const item = document.createElement('div');
+    item.className = 'autocomplete-item';
+    item.dataset.name = name;
+    item.innerHTML = `
+      <span class="autocomplete-item-icon">👤</span>
+      <span class="autocomplete-item-name">${esc(name)}</span>
+      ${repeat ? '<span class="autocomplete-repeat-badge">🔁 Repeat</span>' : ''}
+    `;
+    item.addEventListener('mousedown', e => {
+      e.preventDefault();
+      mName.value = name;
+      nameAutocomplete.classList.remove('open');
+    });
+    nameAutocomplete.appendChild(item);
+  });
+  nameAutocomplete.classList.add('open');
+}
+
+mName.addEventListener('input', () => showAutocomplete(mName.value));
+mName.addEventListener('keydown', e => {
+  const items = nameAutocomplete.querySelectorAll('.autocomplete-item');
+  if (!items.length || !nameAutocomplete.classList.contains('open')) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acActiveIdx = Math.min(acActiveIdx + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acActiveIdx = Math.max(acActiveIdx - 1, 0);
+  } else if (e.key === 'Enter' && acActiveIdx >= 0) {
+    e.preventDefault();
+    mName.value = items[acActiveIdx].dataset.name;
+    nameAutocomplete.classList.remove('open');
+    return;
+  } else if (e.key === 'Escape') {
+    nameAutocomplete.classList.remove('open'); return;
+  } else { return; }
+  items.forEach((el, i) => el.classList.toggle('ac-active', i === acActiveIdx));
+  items[acActiveIdx]?.scrollIntoView({ block: 'nearest' });
 });
+mName.addEventListener('blur', () => setTimeout(() => nameAutocomplete.classList.remove('open'), 150));
+
+function populateNameDatalist() {
+  nameAutocomplete.classList.remove('open');
+  nameAutocomplete.innerHTML = '';
+}
 
 function clearForm() {
   [mName, mPhone, mEmail, mDeviceBrand, mDeviceModel, mDevicePin, mTechnician,
