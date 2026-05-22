@@ -43,6 +43,10 @@ let revenueChartInst = null;
 let statusChartInst  = null;
 let weekChartInst    = null;
 let customerRecordsByName = {}; // name_key → { visit_count, name, phone, last_visit }
+let layoutMode   = localStorage.getItem('arcanel_layout')  || 'grid';    // 'grid' | 'list'
+let densityMode  = localStorage.getItem('arcanel_density') || 'comfy';   // 'comfy' | 'compact'
+let themeMode    = localStorage.getItem('arcanel_theme')   || 'dark';    // 'dark' | 'light'
+let accentColor  = localStorage.getItem('arcanel_accent')  || 'purple';
 
 // ─── DOM Elements ─────────────────────────────────────────────
 const loginOverlay   = document.getElementById('loginOverlay');
@@ -129,12 +133,12 @@ const mStatus        = document.getElementById('m-status');
 const mIssue         = document.getElementById('m-issue');
 const mDate          = document.getElementById('m-date');
 const mDueDate       = document.getElementById('m-due-date');
-const mSource        = document.getElementById('m-source');
+const mSource        = null; // removed field
 const mWarranty      = document.getElementById('m-warranty');
-const mEstCost       = document.getElementById('m-estimated-cost');
+const mEstCost       = null; // removed field
+const mFinalPrice    = null; // removed field
 const mPartsCost     = document.getElementById('m-parts-cost');
 const mLaborCost     = document.getElementById('m-labor-cost');
-const mFinalPrice    = document.getElementById('m-final-price');
 const mNotes         = document.getElementById('m-notes');
 
 // Delete modal
@@ -159,9 +163,109 @@ loginBtn.addEventListener('click', () => {
 adminPass.addEventListener('keydown', e => { if (e.key === 'Enter') loginBtn.click(); });
 logoutBtn.addEventListener('click', () => { sessionStorage.removeItem(SESSION_KEY); showLogin(); });
 
+// ─── Theme / Layout / Greeting ─────────────────────────────
+function applyTheme() {
+  document.body.classList.toggle('light-mode', themeMode === 'light');
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) btn.textContent = themeMode === 'light' ? '🌙' : '☀️';
+  document.querySelectorAll('.density-btn').forEach(b => b.classList.toggle('active', b.id === (densityMode === 'comfy' ? 'densityComfy' : 'densityCompact')));
+  document.querySelectorAll('.layout-btn').forEach(b => b.classList.toggle('active', b.id === (layoutMode === 'grid' ? 'layoutGrid' : 'layoutList')));
+  document.querySelectorAll('.accent-dot').forEach(b => b.classList.toggle('active', b.dataset.accent === accentColor));
+  document.documentElement.setAttribute('data-accent', accentColor);
+  ticketGrid.classList.toggle('list-view', layoutMode === 'list');
+  ticketGrid.classList.toggle('compact', densityMode === 'compact');
+}
+
+function setGreeting() {
+  const h = new Date().getHours();
+  const greeting = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const el = document.getElementById('pageGreeting');
+  const dt = document.getElementById('pageDate');
+  if (el) el.textContent = greeting + ', Arcanel 👋';
+  if (dt) dt.textContent = new Date().toLocaleDateString('en-PH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+
+// Theme toggle
+document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
+  themeMode = themeMode === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('arcanel_theme', themeMode);
+  applyTheme();
+});
+
+// Accent picker
+document.getElementById('accentPicker')?.querySelectorAll('.accent-dot').forEach(btn => {
+  btn.addEventListener('click', () => {
+    accentColor = btn.dataset.accent;
+    localStorage.setItem('arcanel_accent', accentColor);
+    applyTheme();
+  });
+});
+
+// Density toggle
+document.getElementById('densityComfy')?.addEventListener('click', () => {
+  densityMode = 'comfy'; localStorage.setItem('arcanel_density', densityMode); applyTheme();
+});
+document.getElementById('densityCompact')?.addEventListener('click', () => {
+  densityMode = 'compact'; localStorage.setItem('arcanel_density', densityMode); applyTheme();
+});
+
+// Layout toggle
+document.getElementById('layoutGrid')?.addEventListener('click', () => {
+  layoutMode = 'grid'; localStorage.setItem('arcanel_layout', layoutMode); applyTheme();
+});
+document.getElementById('layoutList')?.addEventListener('click', () => {
+  layoutMode = 'list'; localStorage.setItem('arcanel_layout', layoutMode); applyTheme();
+});
+
+// Sidebar collapse
+document.getElementById('sidebarCollapseBtn')?.addEventListener('click', () => {
+  const sidebar = document.getElementById('sidebar');
+  const main    = document.querySelector('.main-content');
+  sidebar.classList.toggle('collapsed');
+  main.classList.toggle('sidebar-collapsed');
+  const btn = document.getElementById('sidebarCollapseBtn');
+  btn.textContent = sidebar.classList.contains('collapsed') ? '›' : '‹';
+});
+
+// Helpers: avatar + device icon
+const AVATAR_COLORS = ['#7c6fff','#3b82f6','#10b981','#f59e0b','#ef4444','#ec4899','#8b5cf6','#06b6d4'];
+function avatarColor(name) {
+  let h = 0; for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+}
+const DEVICE_ICONS = { phone:'📱', mobile:'📱', smartphone:'📱', laptop:'💻', notebook:'💻', tablet:'📲', ipad:'📲', desktop:'🖥️', pc:'🖥️', computer:'🖥️', watch:'⌚', smartwatch:'⌚', console:'🎮', playstation:'🎮', xbox:'🎮', camera:'📷', printer:'🖨️' };
+function deviceIcon(type) {
+  if (!type) return '🛠️';
+  const t = type.toLowerCase();
+  for (const [k, v] of Object.entries(DEVICE_ICONS)) { if (t.includes(k)) return v; }
+  return '🛠️';
+}
+
+// Skeleton loading
+function showSkeleton(count = 6) {
+  ticketGrid.innerHTML = Array(count).fill(0).map(() => `
+    <div class="skeleton-card">
+      <div class="skeleton-line" style="height:14px;width:40%"></div>
+      <div class="skeleton-line" style="height:18px;width:65%"></div>
+      <div class="skeleton-line" style="height:13px;width:50%"></div>
+      <div class="skeleton-line" style="height:13px;width:35%"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <div class="skeleton-line" style="height:12px;width:25%"></div>
+        <div class="skeleton-line" style="height:12px;width:30%"></div>
+      </div>
+    </div>`).join('');
+}
+
 function showDashboard() {
   loginOverlay.style.display = 'none';
   dashboard.classList.add('active');
+  applyTheme();
+  setGreeting();
   loadAndRender();
 }
 function showLogin() {
@@ -214,7 +318,7 @@ async function cleanupOldTickets() {
 }
 
 async function loadAndRender() {
-  ticketGrid.innerHTML = '<p style="text-align:center;color:var(--text-3);padding:40px;">Loading…</p>';
+  showSkeleton();
   const [bookingsRes] = await Promise.all([
     db.from('bookings').select('*').order('created_at', { ascending: false }),
     fetchCustomerRecords()
@@ -415,6 +519,9 @@ function renderCards() {
     const payStatus = b.payment_status || 'unpaid';
     const payColors = { unpaid: '#f87171', partial: '#fcd34d', paid: '#34d399' };
     const tags = Array.isArray(b.tags) ? b.tags : [];
+    const initials  = getInitials(b.name);
+    const avatarBg  = avatarColor(b.name || '?');
+    const devIcon   = deviceIcon(b.device_type);
 
     const card = document.createElement('div');
     card.className = 'ticket-card'
@@ -428,6 +535,7 @@ function renderCards() {
       <div class="ticket-card-header">
         <div class="ticket-card-header-left">
           <input type="checkbox" class="bulk-checkbox card-chk" data-id="${b.id}" ${isSelected ? 'checked' : ''}>
+          <div class="customer-avatar" style="background:${avatarBg}22;color:${avatarBg};border:1.5px solid ${avatarBg}55">${esc(initials)}</div>
           <span class="ticket-card-id">#${esc(ticketNum(b))}</span>
           ${priority !== 'normal' ? `<span class="priority-badge priority-${esc(priority)}">${priorityLabel(priority)}</span>` : ''}
           ${repeat ? `<span class="repeat-card-badge">🔁 Repeat</span>` : ''}
@@ -439,7 +547,7 @@ function renderCards() {
       </div>
       <div class="ticket-card-body">
         <div class="ticket-customer"><span class="tc-icon">👤</span><span>${esc(b.name)}</span></div>
-        <div class="ticket-device"><span class="tc-icon">📱</span><span>${esc(device)}</span></div>
+        <div class="ticket-device"><span class="device-type-icon">${devIcon}</span><span>${esc(device)}</span></div>
         ${b.phone    ? `<div class="ticket-phone"><span class="tc-icon">📞</span><span>${esc(b.phone)}</span></div>` : ''}
         ${b.technician ? `<div class="ticket-phone"><span class="tc-icon">🔧</span><span>${esc(b.technician)}</span></div>` : ''}
         ${service    ? `<div class="ticket-issue">${esc(service)}${issue ? ' — ' + esc(issue.slice(0,60)) + (issue.length > 60 ? '…' : '') : ''}</div>` : (issue ? `<div class="ticket-issue">${esc(issue.slice(0,80))}${issue.length > 80 ? '…' : ''}</div>` : '')}

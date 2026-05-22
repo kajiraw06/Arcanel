@@ -114,6 +114,95 @@ a { text-decoration: none; color: inherit; }
 .dashboard { display: none; width: 100%; height: 100vh; overflow: hidden; }
 .dashboard.active { display: flex; }
 
+/* ===== LIGHT MODE ===== */
+body.light-mode {
+  --bg:#f0f2f8; --bg-2:#e8eaf2; --bg-card:#ffffff; --bg-card-2:#f5f6fc;
+  --border:rgba(0,0,0,0.08); --border-hover:rgba(124,111,255,0.4);
+  --text-1:#0e1018; --text-2:#4e5670; --text-3:#8b94b3;
+  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,111,255,0.08) 0%, transparent 60%) !important;
+}
+body.light-mode .sidebar  { background: linear-gradient(180deg,#e8eaf2 0%,#dfe2f0 100%); }
+body.light-mode .modal    { background: linear-gradient(160deg,#ffffff 0%,#f5f6fc 100%); }
+body.light-mode .ticket-card { background: #ffffff; border-color: rgba(0,0,0,0.07); }
+body.light-mode input, body.light-mode select, body.light-mode textarea { background: #f0f2f8; border-color: rgba(0,0,0,0.12); color: var(--text-1); }
+
+/* ===== ACCENT COLORS ===== */
+:root[data-accent="blue"]  { --accent:#3b82f6; --accent-2:#60a5fa; --accent-glow:rgba(59,130,246,0.25);  --accent-glow-lg:rgba(59,130,246,0.12); }
+:root[data-accent="green"] { --accent:#10b981; --accent-2:#34d399; --accent-glow:rgba(16,185,129,0.25);  --accent-glow-lg:rgba(16,185,129,0.12); }
+:root[data-accent="rose"]  { --accent:#f43f5e; --accent-2:#fb7185; --accent-glow:rgba(244,63,94,0.25);   --accent-glow-lg:rgba(244,63,94,0.12); }
+:root[data-accent="purple"]{ --accent:#7c6fff; --accent-2:#a78bfa; --accent-glow:rgba(124,111,255,0.25); --accent-glow-lg:rgba(124,111,255,0.12); }
+
+/* ===== SIDEBAR COLLAPSE ===== */
+.sidebar-collapse-btn {
+  position: absolute; top: 74px; right: -12px;
+  width: 24px; height: 24px;
+  background: var(--bg-card-2); border: 1px solid var(--border); border-radius: 50%;
+  color: var(--text-2); font-size: 1rem; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.25s; z-index: 101; font-family: inherit;
+}
+.sidebar-collapse-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.sidebar.collapsed { width: 62px; }
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-item > span:last-child { display: none; }
+.sidebar.collapsed .sidebar-logo { justify-content: center; padding-bottom: 18px; }
+.sidebar.collapsed .nav-item { justify-content: center; padding: 10px; }
+.sidebar.collapsed .sidebar-collapse-btn { right: -12px; }
+.main-content { transition: margin-left 0.25s cubic-bezier(0.4,0,0.2,1); }
+.main-content.sidebar-collapsed { margin-left: 62px; }
+
+/* ===== THEME & CONTROLS ===== */
+.theme-controls { display: flex; align-items: center; gap: 8px; }
+.icon-btn {
+  width: 34px; height: 34px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text-2); font-size: 0.95rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all var(--transition); font-family: inherit;
+}
+.icon-btn:hover, .icon-btn.active { background: rgba(124,111,255,0.15); border-color: var(--accent); color: var(--accent-2); }
+.accent-picker { display: flex; align-items: center; gap: 5px; }
+.accent-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s; padding: 0; }
+.accent-dot:hover { transform: scale(1.2); }
+.accent-dot.active { border-color: #fff; transform: scale(1.15); }
+.accent-dot.accent-purple { background: #7c6fff; }
+.accent-dot.accent-blue   { background: #3b82f6; }
+.accent-dot.accent-green  { background: #10b981; }
+.accent-dot.accent-rose   { background: #f43f5e; }
+.view-density-btns, .view-layout-btns { display: flex; gap: 3px; }
+
+/* ===== COMPACT DENSITY ===== */
+.ticket-grid.compact .ticket-card { padding: 10px 14px; }
+.ticket-grid.compact .ticket-card-body { gap: 3px; }
+.ticket-grid.compact .ticket-customer,
+.ticket-grid.compact .ticket-device,
+.ticket-grid.compact .ticket-phone { font-size: 0.78rem; }
+
+/* ===== LIST VIEW ===== */
+.ticket-grid.list-view { display: flex; flex-direction: column; gap: 6px; }
+.ticket-grid.list-view .ticket-card { display: grid; grid-template-columns: 200px 1fr auto; align-items: center; gap: 0 16px; padding: 10px 16px; border-radius: var(--radius-sm); }
+.ticket-grid.list-view .ticket-card-header { grid-column: 1; border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+.ticket-grid.list-view .ticket-card-body   { grid-column: 2; display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px 14px; }
+.ticket-grid.list-view .ticket-card-footer { grid-column: 3; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.ticket-grid.list-view .due-today-tag,
+.ticket-grid.list-view .ticket-overdue-tag { display: none; }
+
+/* ===== SKELETON LOADING ===== */
+@keyframes shimmer { 0%{ background-position:-600px 0; } 100%{ background-position:600px 0; } }
+.skeleton-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.skeleton-line { border-radius: 6px; background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-2) 50%, var(--bg-card) 75%); background-size: 600px 100%; animation: shimmer 1.4s infinite linear; }
+
+/* ===== CUSTOMER AVATAR ===== */
+.customer-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; font-family: var(--font-head); }
+
+/* ===== EMPTY STATE ===== */
+.empty-state { display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 60px 20px; text-align: center; }
+.empty-state.visible { display: flex; }
+.empty-state-icon { font-size: 3.5rem; line-height: 1; }
+.empty-state-title { font-family: var(--font-head); font-size: 1.2rem; font-weight: 700; color: var(--text-1); }
+.empty-state-sub { color: var(--text-2); font-size: 0.88rem; max-width: 280px; }
+.page-subtitle { color: var(--text-2); font-size: 0.85rem; margin-top: 3px; }
+
 /* ===== SIDEBAR ===== */
 .sidebar {
   width: var(--sidebar-w);

@@ -37,7 +37,7 @@
   <div class="dashboard" id="dashboard">
 
     <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
         <svg width="32" height="32" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect width="36" height="36" rx="10" fill="rgba(124,111,255,0.2)"/>
@@ -46,6 +46,7 @@
         </svg>
         <span class="logo-text">Arcanel<span class="accent">Tech</span></span>
       </div>
+      <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Collapse sidebar">‹</button>
       <nav class="sidebar-nav">
         <div class="nav-item active" id="navTickets">
           <span class="nav-icon">🎫</span>
@@ -75,10 +76,27 @@
       <!-- Page Header -->
       <div class="page-header">
         <div>
-          <h1 class="page-title">Tickets</h1>
-          <p class="page-subtitle">Manage all repair tickets</p>
+          <h1 class="page-title" id="pageGreeting">Tickets</h1>
+          <p class="page-subtitle" id="pageDate">Manage all repair tickets</p>
         </div>
         <div class="page-actions">
+          <div class="theme-controls">
+            <button class="icon-btn" id="themeToggleBtn" title="Toggle light/dark mode">🌙</button>
+            <div class="accent-picker" id="accentPicker">
+              <button class="accent-dot accent-purple active" data-accent="purple" title="Purple"></button>
+              <button class="accent-dot accent-blue" data-accent="blue" title="Blue"></button>
+              <button class="accent-dot accent-green" data-accent="green" title="Green"></button>
+              <button class="accent-dot accent-rose" data-accent="rose" title="Rose"></button>
+            </div>
+          </div>
+          <div class="view-density-btns">
+            <button class="icon-btn density-btn active" id="densityComfy" title="Comfortable">☰</button>
+            <button class="icon-btn density-btn" id="densityCompact" title="Compact">≡</button>
+          </div>
+          <div class="view-layout-btns">
+            <button class="icon-btn layout-btn active" id="layoutGrid" title="Grid view">⊞</button>
+            <button class="icon-btn layout-btn" id="layoutList" title="List view">☰</button>
+          </div>
           <button class="btn btn-ghost btn-sm" id="exportBtn">📥 Export CSV</button>
           <button class="btn btn-primary" id="addBtn">＋ New Ticket</button>
         </div>
@@ -208,8 +226,10 @@
           </div>
           <div class="ticket-grid" id="ticketGrid"></div>
           <div class="empty-state" id="emptyState">
-            <span>🎫</span>
-            <p>No tickets yet. Create one to get started.</p>
+            <div class="empty-state-icon">🔧</div>
+            <h3 class="empty-state-title">No tickets found</h3>
+            <p class="empty-state-sub">Try adjusting your filters or create a new ticket to get started.</p>
+            <button class="btn btn-primary" onclick="document.getElementById('addBtn').click()">+ New Ticket</button>
           </div>
         </div>
       </div>
