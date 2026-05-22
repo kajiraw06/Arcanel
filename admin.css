@@ -286,13 +286,13 @@ body.light-mode input, body.light-mode select, body.light-mode textarea { backgr
 .btn-sm { padding: 7px 14px; font-size: 0.82rem; }
 
 /* ===== STATS GRID ===== */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 14px; margin-bottom: 24px; flex-shrink: 0; }
+.stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 18px; flex-shrink: 0; }
 .stat-card {
   background: linear-gradient(145deg, var(--bg-card), rgba(12,14,22,0.9));
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px 18px;
-  display: flex; align-items: center; gap: 14px;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px;
   transition: all 0.25s ease;
   position: relative; overflow: hidden;
 }
@@ -315,17 +315,17 @@ body.light-mode input, body.light-mode select, body.light-mode textarea { backgr
   box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(124,111,255,0.1);
 }
 .stat-icon-bubble {
-  width: 46px; height: 46px;
-  border-radius: 12px;
+  width: 34px; height: 34px;
+  border-radius: 9px;
   background: var(--stat-bg, rgba(124,111,255,0.15));
   border: 1px solid rgba(255,255,255,0.06);
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem; flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  font-size: 1rem; flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
-.stat-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.stat-number { font-family: var(--font-head); font-size: 1.65rem; font-weight: 800; line-height: 1; color: var(--text-1); letter-spacing: -0.5px; }
-.stat-label { font-size: 0.73rem; color: var(--text-2); font-weight: 500; letter-spacing: 0.2px; }
+.stat-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat-number { font-family: var(--font-head); font-size: 1.25rem; font-weight: 800; line-height: 1; color: var(--text-1); letter-spacing: -0.5px; }
+.stat-label { font-size: 0.68rem; color: var(--text-2); font-weight: 500; letter-spacing: 0.1px; line-height: 1.3; }
 .stat-total   { --stat-color: #7c6fff; --stat-bg: rgba(124,111,255,0.14); --stat-glow: rgba(124,111,255,0.08); }
 .stat-active  { --stat-color: #f59e0b; --stat-bg: rgba(245,158,11,0.14);  --stat-glow: rgba(245,158,11,0.07);  }
 .stat-ready   { --stat-color: #10b981; --stat-bg: rgba(16,185,129,0.14);  --stat-glow: rgba(16,185,129,0.07);  }
