@@ -1175,7 +1175,12 @@ confirmDelete.addEventListener('click', async () => {
 deleteOverlay.addEventListener('click', e => { if (e.target === deleteOverlay) closeDeleteModal(); });
 
 // ─── Toolbar ──────────────────────────────────────────────────
-searchInput.addEventListener('input', e => { searchQuery = e.target.value; render(); });
+searchInput.addEventListener('input', e => {
+  searchQuery = e.target.value;
+  const clearBtn = document.getElementById('searchClear');
+  if (clearBtn) clearBtn.style.display = e.target.value ? 'flex' : 'none';
+  render();
+});
 addBtn.addEventListener('click', openAdd);
 
 // Select all
