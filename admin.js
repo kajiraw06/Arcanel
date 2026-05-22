@@ -510,31 +510,41 @@ function renderCards() {
     card.dataset.id = b.id;
 
     card.innerHTML = `
-      <div class="ticket-card-header">
-        <div class="ticket-card-header-left">
-          <input type="checkbox" class="bulk-checkbox card-chk" data-id="${b.id}" ${isSelected ? 'checked' : ''}>
-          <div class="customer-avatar" style="background:${avatarBg}22;color:${avatarBg};border:1.5px solid ${avatarBg}55">${esc(initials)}</div>
-          <span class="ticket-card-id">#${esc(ticketNum(b))}</span>
-          ${priority !== 'normal' ? `<span class="priority-badge priority-${esc(priority)}">${priorityLabel(priority)}</span>` : ''}
-          ${repeat ? `<span class="repeat-card-badge">🔁 Repeat</span>` : ''}
+      <div class="tc-top">
+        <input type="checkbox" class="bulk-checkbox card-chk" data-id="${b.id}" ${isSelected ? 'checked' : ''}>
+        <div class="customer-avatar" style="background:${avatarBg}20;color:${avatarBg};border:1.5px solid ${avatarBg}45">${esc(initials)}</div>
+        <div class="tc-name-group">
+          <div class="tc-customer-name">${esc(b.name)}</div>
+          <div class="tc-ticket-ref">#${esc(ticketNum(b))}${b.phone ? ' · ' + esc(b.phone) : ''}</div>
         </div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span class="payment-badge payment-card-badge payment-${esc(payStatus)}" style="color:${payColors[payStatus]}">${payStatus.charAt(0).toUpperCase()+payStatus.slice(1)}</span>
+        <div class="tc-status-group">
           <span class="status-badge status-${esc(b.status)}">${statusLabel(b.status)}</span>
+          ${priority !== 'normal' ? `<span class="priority-badge priority-${esc(priority)}">${priorityLabel(priority)}</span>` : ''}
         </div>
       </div>
-      <div class="ticket-card-body">
-        <div class="ticket-customer"><span class="tc-icon">👤</span><span>${esc(b.name)}</span></div>
-        <div class="ticket-device"><span class="device-type-icon">${devIcon}</span><span>${esc(device)}</span></div>
-        ${b.phone    ? `<div class="ticket-phone"><span class="tc-icon">📞</span><span>${esc(b.phone)}</span></div>` : ''}
-        ${b.technician ? `<div class="ticket-phone"><span class="tc-icon">🔧</span><span>${esc(b.technician)}</span></div>` : ''}
-        ${service    ? `<div class="ticket-issue">${esc(service)}${issue ? ' — ' + esc(issue.slice(0,60)) + (issue.length > 60 ? '…' : '') : ''}</div>` : (issue ? `<div class="ticket-issue">${esc(issue.slice(0,80))}${issue.length > 80 ? '…' : ''}</div>` : '')}
-        ${tags.length ? `<div class="tags-list" style="margin-top:4px">${tags.slice(0,3).map(t => `<span class="tag-pill" style="padding:2px 7px;font-size:0.68rem">${esc(t)}</span>`).join('')}${tags.length>3?`<span class="tag-pill" style="padding:2px 7px;font-size:0.68rem">+${tags.length-3}</span>`:''}</div>` : ''}
-        ${dueToday   ? '<div class="due-today-tag">📅 Due Today</div>' : ''}
-        ${overdue    ? '<div class="ticket-overdue-tag">⚠ Overdue</div>' : ''}
+
+      <div class="tc-device-line">
+        <span class="device-type-icon">${devIcon}</span>
+        <span class="tc-device-text">${esc(device)}</span>
+        ${service ? `<span class="tc-sep">·</span><span class="tc-service-text">${esc(service)}${issue ? ' — ' + esc(issue.slice(0,50)) + (issue.length > 50 ? '…' : '') : ''}</span>` : (issue ? `<span class="tc-sep">·</span><span class="tc-service-text">${esc(issue.slice(0,60))}${issue.length > 60 ? '…' : ''}</span>` : '')}
       </div>
-      <div class="ticket-card-footer">
-        <span class="ticket-date">${dateStr}</span>
+
+      ${(b.technician || dueDate) ? `
+      <div class="tc-meta-line">
+        ${b.technician ? `<span class="tc-meta-item">🔧 ${esc(b.technician)}</span>` : ''}
+        ${dueDate ? `<span class="tc-meta-item">📅 Due ${esc(fmtDate(dueDate))}</span>` : ''}
+      </div>` : ''}
+
+      ${tags.length ? `<div class="tc-tags-line">${tags.slice(0,3).map(t => `<span class="tag-pill" style="padding:2px 7px;font-size:0.68rem">${esc(t)}</span>`).join('')}${tags.length > 3 ? `<span class="tag-pill" style="padding:2px 7px;font-size:0.68rem">+${tags.length-3}</span>` : ''}</div>` : ''}
+
+      <div class="tc-footer">
+        <div class="tc-footer-left">
+          <span class="payment-badge payment-${esc(payStatus)}" style="color:${payColors[payStatus]}">${payStatus.charAt(0).toUpperCase()+payStatus.slice(1)}</span>
+          ${repeat   ? `<span class="repeat-card-badge">🔁 Repeat</span>` : ''}
+          ${dueToday && !overdue ? '<span class="due-today-tag">📅 Today</span>' : ''}
+          ${overdue  ? '<span class="ticket-overdue-tag">⚠ Overdue</span>' : ''}
+          <span class="tc-date">${dateStr}</span>
+        </div>
         <div class="ticket-actions">
           <button class="btn btn-ghost btn-xs card-btn-view" data-id="${b.id}">View</button>
           <button class="btn btn-ghost btn-xs card-btn-edit" data-id="${b.id}">Edit</button>
