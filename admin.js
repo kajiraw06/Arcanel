@@ -518,7 +518,7 @@ function renderCards() {
           <div class="tc-ticket-ref">#${esc(ticketNum(b))}${b.phone ? ' · ' + esc(b.phone) : ''}</div>
         </div>
         <div class="tc-status-group">
-          <span class="status-badge status-${esc(b.status)}">${statusLabel(b.status)}</span>
+          <span class="status-badge status-${esc(b.status)} card-status-cycle" data-id="${b.id}" title="Click to cycle status">${statusLabel(b.status)}</span>
           ${priority !== 'normal' ? `<span class="priority-badge priority-${esc(priority)}">${priorityLabel(priority)}</span>` : ''}
         </div>
       </div>
@@ -562,10 +562,13 @@ function renderCards() {
       renderCards();
     });
   });
+  ticketGrid.querySelectorAll('.card-status-cycle').forEach(badge => {
+    badge.addEventListener('click', e => { e.stopPropagation(); cycleStatus(badge.dataset.id); });
+  });
   // Clicking the card body opens view; buttons handle edit/delete
   ticketGrid.querySelectorAll('.ticket-card').forEach(card => {
     card.addEventListener('click', e => {
-      if (e.target.closest('button') || e.target.closest('input')) return;
+      if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.card-status-cycle')) return;
       openView(card.dataset.id);
     });
   });
@@ -610,6 +613,15 @@ function openView(id) {
   pinVisible = false;
 
   document.getElementById('viewTicketNum').textContent = 'Ticket #' + ticketNum(b);
+
+  // Hero header
+  const heroColor = avatarColor(b.name || '?');
+  const heroAvatar = document.getElementById('viewHeroAvatar');
+  heroAvatar.textContent = getInitials(b.name);
+  heroAvatar.style.cssText = `background:${heroColor}20;color:${heroColor};border:1.5px solid ${heroColor}45`;
+  document.getElementById('viewHeroName').textContent = b.name || '—';
+  const heroDevice = [b.device_brand, b.device_model].filter(Boolean).join(' ') + (b.device_type ? ` (${b.device_type})` : '') || (b.device || '');
+  document.getElementById('viewHeroDevice').textContent = deviceIcon(b.device_type) + ' ' + (heroDevice || '—') + (b.service ? ' · ' + b.service : '');
 
   // Tags
   const tags = Array.isArray(b.tags) ? b.tags : [];

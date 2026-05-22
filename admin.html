@@ -261,11 +261,18 @@
   <div class="modal-overlay" id="viewOverlay">
     <div class="modal modal--view">
       <div class="modal-header">
-        <div class="view-title-row">
-          <h3 id="viewTicketNum">Ticket #0000</h3>
-          <span id="viewStatusBadge"></span>
-          <span id="viewPriorityBadge"></span>
-          <span class="overdue-badge" id="viewOverdueBadge" style="display:none">⚠ Overdue</span>
+        <div class="view-hero">
+          <div class="view-hero-avatar" id="viewHeroAvatar">?</div>
+          <div class="view-hero-info">
+            <div class="view-hero-name" id="viewHeroName">—</div>
+            <div class="view-hero-device" id="viewHeroDevice"></div>
+            <div class="view-title-row">
+              <h3 id="viewTicketNum">Ticket #0000</h3>
+              <span id="viewStatusBadge"></span>
+              <span id="viewPriorityBadge"></span>
+              <span class="overdue-badge" id="viewOverdueBadge" style="display:none">⚠ Overdue</span>
+            </div>
+          </div>
         </div>
         <button class="modal-close" id="viewClose">&times;</button>
       </div>
