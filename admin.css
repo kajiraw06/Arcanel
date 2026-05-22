@@ -116,15 +116,161 @@ a { text-decoration: none; color: inherit; }
 
 /* ===== LIGHT MODE ===== */
 body.light-mode {
-  --bg:#f0f2f8; --bg-2:#e8eaf2; --bg-card:#ffffff; --bg-card-2:#f5f6fc;
-  --border:rgba(0,0,0,0.08); --border-hover:rgba(124,111,255,0.4);
+  --bg:#f0f2f8; --bg-2:#e8eaf2; --bg-card:#ffffff; --bg-card-2:#f0f1f8;
+  --border:rgba(0,0,0,0.09); --border-hover:rgba(124,111,255,0.4);
   --text-1:#0e1018; --text-2:#4e5670; --text-3:#8b94b3;
-  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,111,255,0.08) 0%, transparent 60%) !important;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,111,255,0.07) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='1' cy='1' r='1' fill='rgba(0,0,0,0.04)'/%3E%3C/svg%3E") !important;
 }
-body.light-mode .sidebar  { background: linear-gradient(180deg,#e8eaf2 0%,#dfe2f0 100%); }
-body.light-mode .modal    { background: linear-gradient(160deg,#ffffff 0%,#f5f6fc 100%); }
-body.light-mode .ticket-card { background: #ffffff; border-color: rgba(0,0,0,0.07); }
-body.light-mode input, body.light-mode select, body.light-mode textarea { background: #f0f2f8; border-color: rgba(0,0,0,0.12); color: var(--text-1); }
+/* Sidebar */
+body.light-mode .sidebar {
+  background: linear-gradient(180deg,#e8eaf2 0%,#dfe2f0 100%);
+  border-right-color: rgba(0,0,0,0.08);
+  box-shadow: 4px 0 16px rgba(0,0,0,0.06);
+}
+body.light-mode .sidebar-logo { border-bottom-color: rgba(0,0,0,0.08); }
+body.light-mode .sidebar-footer { border-top-color: rgba(0,0,0,0.08); }
+body.light-mode .nav-item { color: var(--text-2); }
+body.light-mode .nav-item:hover { background: rgba(124,111,255,0.08); color: var(--text-1); border-color: rgba(124,111,255,0.18); }
+/* Page title gradient */
+body.light-mode .page-title {
+  background: linear-gradient(135deg, #0e1018 30%, var(--accent) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+/* Stat cards */
+body.light-mode .stat-card {
+  background: linear-gradient(145deg, #ffffff, #f5f6fc);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+/* Modal */
+body.light-mode .modal {
+  background: linear-gradient(160deg,#ffffff 0%,#f5f6fc 100%);
+  border-color: rgba(0,0,0,0.1);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.15);
+}
+body.light-mode .modal-header {
+  background: linear-gradient(135deg, rgba(124,111,255,0.07), rgba(167,139,250,0.03));
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+body.light-mode .modal-footer {
+  background: rgba(0,0,0,0.03);
+  border-top-color: rgba(0,0,0,0.08);
+}
+body.light-mode .modal-close {
+  background: rgba(0,0,0,0.05);
+  border-color: rgba(0,0,0,0.1);
+}
+/* Ticket cards */
+body.light-mode .ticket-card { background: #ffffff; border-color: rgba(0,0,0,0.09); }
+body.light-mode .ticket-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+body.light-mode .tc-footer { background: rgba(0,0,0,0.03); border-top-color: rgba(0,0,0,0.08); }
+/* Search & filters */
+body.light-mode .search-filter-bar {
+  background: rgba(255,255,255,0.8);
+  border-color: rgba(0,0,0,0.09);
+}
+body.light-mode .search-input {
+  background: #f0f2f8;
+  border-color: rgba(0,0,0,0.12);
+  color: var(--text-1);
+}
+body.light-mode .search-input:focus { background: #ffffff; }
+body.light-mode .chip {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.1);
+  color: var(--text-2);
+}
+body.light-mode .chip:hover { background: rgba(124,111,255,0.08); }
+/* View tabs */
+body.light-mode .view-tabs {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.09);
+}
+body.light-mode .view-tab:hover { background: rgba(0,0,0,0.05); }
+body.light-mode .view-tab-count { background: rgba(0,0,0,0.07); }
+/* Sort select */
+body.light-mode .sort-select {
+  background-color: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.1);
+  color: var(--text-2);
+}
+body.light-mode .sort-select option { background: #ffffff; color: var(--text-1); }
+/* Form fields — override the hardcoded dark bg */
+body.light-mode input,
+body.light-mode select,
+body.light-mode textarea,
+body.light-mode .form-group input,
+body.light-mode .form-group select,
+body.light-mode .form-group textarea {
+  background: #f0f2f8 !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: var(--text-1) !important;
+}
+body.light-mode .form-group input:focus,
+body.light-mode .form-group select:focus,
+body.light-mode .form-group textarea:focus { background: #ffffff !important; }
+body.light-mode .form-group select option { background: #ffffff; color: var(--text-1); }
+/* Quick-status select in view modal */
+body.light-mode .quick-status-select { background-color: #f0f2f8; }
+body.light-mode .quick-status-row {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.09);
+}
+/* Bulk status select */
+body.light-mode .bulk-status-select {
+  background-color: #f0f2f8 !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: var(--text-1) !important;
+}
+body.light-mode .bulk-status-select option { background: #ffffff; color: var(--text-1); }
+/* Buttons */
+body.light-mode .btn-ghost {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.1);
+  color: var(--text-2);
+}
+body.light-mode .btn-ghost:hover { background: rgba(124,111,255,0.1); color: var(--text-1); }
+body.light-mode .btn-cancel-modal { border-color: rgba(0,0,0,0.12); color: var(--text-2); }
+body.light-mode .btn-cancel-modal:hover { background: var(--bg-2); }
+/* View sections */
+body.light-mode .view-section {
+  background: rgba(0,0,0,0.03);
+  border-color: rgba(0,0,0,0.09);
+}
+body.light-mode .view-section:hover { border-color: rgba(124,111,255,0.2); }
+body.light-mode .cost-item { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
+body.light-mode .checklist-item { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
+body.light-mode .note-item { background: #f5f6fc; border-color: rgba(0,0,0,0.09); }
+body.light-mode .note-input { background: #f0f2f8; border-color: rgba(0,0,0,0.12); color: var(--text-1); }
+body.light-mode .status-progress { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.09); }
+body.light-mode .progress-dot { background: #dde0ee; border-color: rgba(0,0,0,0.12); }
+/* Analytics */
+body.light-mode .analytics-stat,
+body.light-mode .chart-card {
+  background: linear-gradient(145deg, #ffffff, #f5f6fc);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+/* Autocomplete */
+body.light-mode .autocomplete-list {
+  background: #ffffff;
+  border-color: rgba(124,111,255,0.2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+body.light-mode .autocomplete-item:hover { background: rgba(124,111,255,0.07); }
+/* Icon btn */
+body.light-mode .icon-btn {
+  background: #ffffff;
+  border-color: rgba(0,0,0,0.1);
+  color: var(--text-2);
+}
+/* Skeleton */
+body.light-mode .skeleton-card { background: #ffffff; }
+body.light-mode .skeleton-line {
+  background: linear-gradient(90deg, #e8eaf2 25%, #f0f2f8 50%, #e8eaf2 75%);
+  background-size: 600px 100%;
+}
 
 /* ===== ACCENT COLORS ===== */
 :root[data-accent="blue"]  { --accent:#3b82f6; --accent-2:#60a5fa; --accent-glow:rgba(59,130,246,0.25);  --accent-glow-lg:rgba(59,130,246,0.12); }
