@@ -184,6 +184,7 @@ document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
   themeMode = themeMode === 'dark' ? 'light' : 'dark';
   localStorage.setItem('arcanel_theme', themeMode);
   applyTheme();
+  if (currentView === 'analytics') renderAnalytics();
 });
 
 // Accent picker
@@ -385,9 +386,9 @@ function filteredBookings() {
     switch (sortOrder) {
       case 'oldest':   return new Date(a.created_at) - new Date(b.created_at);
       case 'due_asc': {
-        const da = a.due_date ? new Date(a.due_date + 'T00:00:00') : new Date('9999-12-31');
-        const db = b.due_date ? new Date(b.due_date + 'T00:00:00') : new Date('9999-12-31');
-        return da - db;
+        const dateA = a.due_date ? new Date(a.due_date + 'T00:00:00') : new Date('9999-12-31');
+        const dateB = b.due_date ? new Date(b.due_date + 'T00:00:00') : new Date('9999-12-31');
+        return dateA - dateB;
       }
       case 'priority': {
         const p = { urgent: 0, normal: 1, low: 2 };
@@ -708,6 +709,12 @@ function openView(id) {
   payBadge.className = 'payment-badge payment-' + payStatus;
   payBadge.textContent = { unpaid: 'Unpaid', partial: 'Partial', paid: 'Paid ✓' }[payStatus] || 'Unpaid';
   vPaymentSelect.value = payStatus;
+
+  // WhatsApp button: disable if no phone
+  const hasPhone = !!(b.phone && b.phone.trim());
+  viewWaBtn.disabled = !hasPhone;
+  viewWaBtn.style.opacity = hasPhone ? '1' : '0.4';
+  viewWaBtn.style.cursor  = hasPhone ? 'pointer' : 'not-allowed';
 
   viewOverlay.classList.add('open');
 }
@@ -1108,7 +1115,7 @@ pinToggleBtn.addEventListener('click', () => {
 
 saveBtn.addEventListener('click', async () => {
   if (!mName.value.trim() || !mDeviceType.value || !mService.value) {
-    alert('Please fill in: Customer Name, Phone, Device Type, and Service.');
+    alert('Please fill in: Customer Name, Device Type, and Service.');
     return;
   }
   saveBtn.textContent = 'Saving…';
@@ -1192,8 +1199,14 @@ selectAllChk.addEventListener('change', () => {
 });
 
 // Tabs
-tabActive.addEventListener('click',  () => { filterView = 'active';  switchTab(); render(); });
-tabArchive.addEventListener('click', () => { filterView = 'archive'; switchTab(); render(); });
+function resetFiltersForTab() {
+  filterStatus   = 'all';
+  filterPriority = 'all';
+  document.querySelectorAll('[data-status]').forEach(c   => c.classList.toggle('chip-active', c.dataset.status   === 'all'));
+  document.querySelectorAll('[data-priority]').forEach(c => c.classList.toggle('chip-active', c.dataset.priority === 'all'));
+}
+tabActive.addEventListener('click',  () => { filterView = 'active';  resetFiltersForTab(); switchTab(); render(); });
+tabArchive.addEventListener('click', () => { filterView = 'archive'; resetFiltersForTab(); switchTab(); render(); });
 
 // Status chips
 document.querySelectorAll('[data-status]').forEach(chip => {
@@ -1327,7 +1340,10 @@ function renderAnalytics() {
     dayCounts.push(bookings.filter(b => b.created_at && b.created_at.startsWith(ds)).length);
   }
 
-  const gridColor = 'rgba(255,255,255,0.05)', tickColor = '#8b94b3';
+  const isLight   = themeMode === 'light';
+  const gridColor  = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)';
+  const tickColor  = isLight ? '#4e5670'           : '#8b94b3';
+  const doughnutBorder = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)';
   const baseScales = { x: { grid: { color: gridColor }, ticks: { color: tickColor } }, y: { grid: { color: gridColor }, ticks: { color: tickColor } } };
 
   if (revenueChartInst) revenueChartInst.destroy();
@@ -1341,7 +1357,7 @@ function renderAnalytics() {
   if (statusChartInst) statusChartInst.destroy();
   statusChartInst = new Chart(document.getElementById('statusChart'), {
     type: 'doughnut',
-    data: { labels: STATUSES.map(s => s.label), datasets: [{ data: STATUSES.map(s => statusCounts[s.key]), backgroundColor: STATUSES.map(s => statusColors[s.key]), borderColor: 'rgba(255,255,255,0.04)', borderWidth: 1 }] },
+    data: { labels: STATUSES.map(s => s.label), datasets: [{ data: STATUSES.map(s => statusCounts[s.key]), backgroundColor: STATUSES.map(s => statusColors[s.key]), borderColor: doughnutBorder, borderWidth: 1 }] },
     options: { responsive: true, plugins: { legend: { labels: { color: tickColor, boxWidth: 12 } } } }
   });
 
@@ -1385,9 +1401,20 @@ exportBtn.addEventListener('click', () => {
 // ─── Keyboard shortcuts ───────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    if (viewOverlay.classList.contains('open'))   closeView();
-    if (modalOverlay.classList.contains('open'))  closeFormModal();
-    if (deleteOverlay.classList.contains('open')) closeDeleteModal();
+    if (custHistoryOverlay.classList.contains('open')) custHistoryOverlay.classList.remove('open');
+    else if (viewOverlay.classList.contains('open'))   closeView();
+    else if (modalOverlay.classList.contains('open'))  closeFormModal();
+    else if (deleteOverlay.classList.contains('open')) closeDeleteModal();
+  }
+  // '/' focuses search when no modal is open and not already in an input
+  if (e.key === '/' && !e.ctrlKey && !e.metaKey &&
+      !viewOverlay.classList.contains('open') &&
+      !modalOverlay.classList.contains('open') &&
+      document.activeElement.tagName !== 'INPUT' &&
+      document.activeElement.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
   }
 });
 

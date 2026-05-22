@@ -266,6 +266,16 @@ body.light-mode .icon-btn {
   border-color: rgba(0,0,0,0.1);
   color: var(--text-2);
 }
+/* Accent dot active border fix for light mode */
+body.light-mode .accent-dot.active { border-color: rgba(0,0,0,0.55); }
+/* Autocomplete hover/active text in light mode */
+body.light-mode .autocomplete-item:hover,
+body.light-mode .autocomplete-item.ac-active { color: var(--text-1); background: rgba(124,111,255,0.1); }
+/* Select option backgrounds in light mode */
+body.light-mode .sort-select option,
+body.light-mode .bulk-status-select option,
+body.light-mode .form-group select option,
+body.light-mode .quick-status-select option { background: #ffffff; color: #0e1018; }
 /* Skeleton */
 body.light-mode .skeleton-card { background: #ffffff; }
 body.light-mode .skeleton-line {
@@ -1013,7 +1023,7 @@ body.light-mode .skeleton-line {
 .repeat-card-badge { font-size: 0.7rem; font-weight: 700; color: #fbbf24; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); border-radius: 6px; padding: 2px 7px; }
 
 /* ===== PAYMENT STATUS ===== */
-.payment-status-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+.payment-status-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 .payment-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
 .payment-unpaid  { background: rgba(239,68,68,0.15);   color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
 .payment-partial { background: rgba(245,158,11,0.15);  color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
@@ -1037,6 +1047,13 @@ body.light-mode .skeleton-line {
 .checklist-del { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: 1rem; padding: 0 2px; transition: color var(--transition); }
 .checklist-del:hover { color: #f87171; }
 .checklist-empty { color: var(--text-3); font-size: 0.85rem; padding: 8px 0; }
+
+/* Overdue stat card active state */
+.stat-overdue-active {
+  box-shadow: 0 0 0 1px rgba(239,68,68,0.35), 0 4px 18px rgba(239,68,68,0.15) !important;
+  border-color: rgba(239,68,68,0.4) !important;
+}
+.stat-overdue-active .stat-number { color: #f87171; }
 
 /* ===== ANALYTICS VIEW ===== */
 .analytics-summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px; }
