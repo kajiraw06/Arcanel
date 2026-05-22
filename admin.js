@@ -882,7 +882,7 @@ function showAutocomplete(query) {
   nameAutocomplete.innerHTML = '';
   acActiveIdx = -1;
   if (!q) { nameAutocomplete.classList.remove('open'); return; }
-  const matches = getKnownNames().filter(n => n.toLowerCase().includes(q));
+  const matches = getKnownNames().filter(n => n.toLowerCase().startsWith(q));
   if (!matches.length) { nameAutocomplete.classList.remove('open'); return; }
   matches.forEach((name, i) => {
     const repeat = isKnownRepeat(name);
